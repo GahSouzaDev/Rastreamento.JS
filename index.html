@@ -784,13 +784,13 @@
             
             // Desenhar círculo externo
             vizCtx.beginPath();
-            vizCtx.arc(vizX, vizY, vizRadius + 5, 0, Math.PI * 2);
+            vizCtx.arc(vizX, vizY, vizRadius + 5, 0, Math.PI * 3);
             vizCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
             vizCtx.fill();
             
             // Desenhar círculo principal
             vizCtx.beginPath();
-            vizCtx.arc(vizX, vizY, vizRadius, 0, Math.PI * 2);
+            vizCtx.arc(vizX, vizY, vizRadius, 0, Math.PI * 3);
             vizCtx.fillStyle = color;
             vizCtx.fill();
             vizCtx.strokeStyle = 'white';
