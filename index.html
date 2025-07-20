@@ -17,7 +17,7 @@
         }
         
         body {
-            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background: linear-gradient(135deg, #1a2a6c, #2a1a6c, #1a2a6c);
             color: white;
             min-height: 100vh;
             padding: 20px;
@@ -38,6 +38,11 @@
             font-size: 2.8rem;
             margin-bottom: 10px;
             text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .highlight {
+            color: #4affa0;
+            font-weight: bold;
         }
         
         .subtitle {
@@ -61,11 +66,11 @@
         }
         
         .panel {
-            background: rgba(0, 0, 30, 0.7);
+            background: rgba(10, 15, 40, 0.8);
             border-radius: 15px;
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(100, 180, 255, 0.3);
         }
         
         .panel-title {
@@ -88,6 +93,7 @@
             border-radius: 10px;
             overflow: hidden;
             background: #000;
+            box-shadow: 0 0 20px rgba(0, 150, 255, 0.3);
         }
         
         #camera {
@@ -107,11 +113,12 @@
         .control-viz {
             width: 100%;
             height: 300px;
-            background: #0a0a20;
+            background: #0a0a25;
             border-radius: 10px;
             margin-top: 20px;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 0 15px rgba(0, 100, 255, 0.2);
         }
         
         #vizCanvas {
@@ -127,24 +134,33 @@
         }
         
         .status-card {
-            background: rgba(20, 40, 80, 0.6);
+            background: rgba(30, 50, 100, 0.6);
             border-radius: 10px;
             padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .status-card:hover {
+            transform: translateY(-5px);
+            background: rgba(40, 70, 130, 0.7);
         }
         
         .status-label {
             font-size: 1rem;
-            opacity: 0.8;
+            opacity: 0.9;
             margin-bottom: 8px;
+            color: #aad4ff;
         }
         
         .status-value {
             font-size: 1.8rem;
             font-weight: bold;
-            color: #4a9eff;
+            color: #4affd0;
+            text-shadow: 0 0 10px rgba(74, 255, 208, 0.5);
         }
         
         .gripper-status {
@@ -160,6 +176,7 @@
             height: 20px;
             border-radius: 50%;
             background: #4a9eff;
+            box-shadow: 0 0 8px rgba(74, 159, 255, 0.7);
         }
         
         .gripper-open {
@@ -168,14 +185,16 @@
         
         .gripper-closed {
             background: #ff4a4a;
+            box-shadow: 0 0 8px rgba(255, 74, 74, 0.7);
         }
         
         .instructions {
             margin-top: 25px;
             padding: 15px;
-            background: rgba(20, 40, 80, 0.4);
+            background: rgba(20, 40, 100, 0.4);
             border-radius: 10px;
             line-height: 1.6;
+            border: 1px solid rgba(100, 180, 255, 0.2);
         }
         
         .instructions h3 {
@@ -189,14 +208,24 @@
         
         .instructions li {
             margin-bottom: 8px;
+            position: relative;
+            padding-left: 20px;
         }
         
-        .inversion-note {
-            background: rgba(255, 204, 0, 0.2);
-            border-left: 4px solid #ffcc00;
-            padding: 10px;
-            margin-top: 10px;
+        .instructions li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #4affd0;
+        }
+        
+        .movement-note {
+            background: rgba(74, 255, 208, 0.15);
+            border-left: 4px solid #4affd0;
+            padding: 10px 15px;
+            margin-top: 15px;
             border-radius: 0 8px 8px 0;
+            font-weight: bold;
         }
         
         .connection-panel {
@@ -214,20 +243,23 @@
         label {
             font-size: 0.9rem;
             opacity: 0.9;
+            color: #aad4ff;
         }
         
         input {
             padding: 12px;
             border-radius: 8px;
             border: none;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(20, 40, 80, 0.5);
             color: white;
             font-size: 1rem;
+            border: 1px solid rgba(100, 180, 255, 0.3);
         }
         
         input:focus {
             outline: 2px solid #4a9eff;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(30, 60, 120, 0.5);
+            box-shadow: 0 0 10px rgba(74, 159, 255, 0.5);
         }
         
         .btn-group {
@@ -245,26 +277,30 @@
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: #4a9eff;
+            background: linear-gradient(135deg, #4a9eff, #2a6cff);
             color: white;
+            box-shadow: 0 4px 10px rgba(0, 80, 255, 0.3);
         }
         
         button:hover {
-            background: #3a8eee;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #3a8eee, #1a5cee);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 80, 255, 0.5);
         }
         
         button:active {
             transform: translateY(0);
+            box-shadow: 0 2px 5px rgba(0, 80, 255, 0.3);
         }
         
         #disconnectBtn {
-            background: #ff4a4a;
+            background: linear-gradient(135deg, #ff4a4a, #ff2a2a);
+            box-shadow: 0 4px 10px rgba(255, 0, 0, 0.3);
         }
         
         #disconnectBtn:hover {
-            background: #ee3a3a;
+            background: linear-gradient(135deg, #ee3a3a, #ee1a1a);
+            box-shadow: 0 6px 15px rgba(255, 0, 0, 0.5);
         }
         
         .connection-status {
@@ -274,7 +310,8 @@
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
-            background: rgba(20, 40, 80, 0.4);
+            background: rgba(20, 40, 100, 0.4);
+            border: 1px solid rgba(100, 180, 255, 0.2);
         }
         
         .status-indicator {
@@ -282,10 +319,12 @@
             height: 15px;
             border-radius: 50%;
             background: #ff4a4a;
+            box-shadow: 0 0 8px rgba(255, 74, 74, 0.7);
         }
         
         .connected {
             background: #4aff4a;
+            box-shadow: 0 0 8px rgba(74, 255, 74, 0.7);
         }
         
         footer {
@@ -294,6 +333,7 @@
             padding: 20px;
             font-size: 0.9rem;
             opacity: 0.7;
+            color: #aad4ff;
         }
         
         .controls-info {
@@ -304,9 +344,17 @@
         }
         
         .control-card {
-            background: rgba(20, 40, 80, 0.6);
+            background: rgba(30, 50, 100, 0.6);
             border-radius: 10px;
             padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(100, 180, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .control-card:hover {
+            transform: translateY(-5px);
+            background: rgba(40, 70, 130, 0.7);
         }
         
         .control-card h3 {
@@ -319,18 +367,37 @@
         
         .control-card p {
             line-height: 1.5;
+            color: #cce6ff;
         }
         
         .icon {
             font-size: 1.5rem;
+        }
+        
+        .viz-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .direction-indicator {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+            font-size: 24px;
+            color: #4affd0;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Controle de Braço Robótico por Gestos</h1>
-            <p class="subtitle">Utilize sua mão para controlar um braço robótico através de gestos naturais. A detecção de mãos em tempo real permite movimentos intuitivos e precisos.</p>
+            <h1>Controle de Braço <span class="highlight">Robótico</span></h1>
+            <p class="subtitle">Controle intuitivo com inversões estratégicas: Aproxime a mão para ir para frente e suba a mão para descer o braço</p>
         </header>
         
         <div class="content">
@@ -344,6 +411,7 @@
                 
                 <div class="control-viz">
                     <canvas id="vizCanvas" width="640" height="300"></canvas>
+                    <div class="viz-info">Visualização de Controle</div>
                 </div>
                 
                 <div class="status-container">
@@ -380,8 +448,12 @@
                         <li>Pressione 'Q' no teclado para encerrar</li>
                     </ul>
                     
-                    <div class="inversion-note">
-                        <strong>Nota:</strong> O movimento vertical está invertido - quando a mão sobe, o braço desce e vice-versa.
+                    <div class="movement-note">
+                        <strong>Movimentos Ajustados:</strong><br>
+                        → Subir a mão = Braço DESCE<br>
+                        → Descer a mão = Braço SOBE<br>
+                        → Aproximar a mão = Vai para FRENTE<br>
+                        → Afastar a mão = Vai para TRÁS
                     </div>
                 </div>
             </div>
@@ -409,18 +481,22 @@
                         <div class="control-card">
                             <h3><i class="icon">↔️</i> Controle Horizontal</h3>
                             <p>Mova sua mão da esquerda para direita na frente da câmera para controlar o movimento horizontal do braço robótico.</p>
+                            <div class="direction-indicator">← mão →</div>
                         </div>
                         <div class="control-card">
-                            <h3><i class="icon">🔄</i> Controle Vertical (Invertido)</h3>
+                            <h3><i class="icon">🔄</i> Controle Vertical</h3>
                             <p><strong>Movimento invertido:</strong> Quando a mão sobe, o braço desce. Quando a mão desce, o braço sobe.</p>
+                            <div class="direction-indicator">↑ mão ↓ = ↓ braço ↑</div>
                         </div>
                         <div class="control-card">
-                            <h3><i class="icon">⤴️</i> Controle Profundidade</h3>
-                            <p>Aproxime e afaste sua mão da câmera para controlar o movimento para frente e para trás do braço.</p>
+                            <h3><i class="icon">🔄</i> Controle Profundidade</h3>
+                            <p><strong>Movimento ajustado:</strong> Aproxime a mão da câmera para mover o braço para frente. Afaste para mover para trás.</p>
+                            <div class="direction-indicator">⇨ mão ⇦ = ⇨ braço ⇦</div>
                         </div>
                         <div class="control-card">
                             <h3><i class="icon">✊</i> Controle da Garra</h3>
                             <p>Junte a ponta do polegar e do indicador para fechar a garra. Afaste-os para abrir.</p>
+                            <div class="direction-indicator">👌 → 🤏</div>
                         </div>
                     </div>
                 </div>
@@ -428,7 +504,7 @@
         </div>
         
         <footer>
-            <p>Sistema de Controle de Braço Robótico por Gestos | Movimento Vertical Invertido | Utilizando MediaPipe Hands e WebSockets</p>
+            <p>Sistema de Controle de Braço Robótico por Gestos | Movimentos Ajustados | Utilizando MediaPipe Hands e WebSockets</p>
         </footer>
     </div>
 
@@ -546,11 +622,13 @@
             const servoLeftRight = mapValue(xCenter, 0.2, 0.8, 20, 160);
             
             // MOVIMENTO VERTICAL INVERTIDO: 
-            // - Quando a mão sobe (yCenter diminui), o braço deve descer (ângulo aumenta)
-            // - Quando a mão desce (yCenter aumenta), o braço deve subir (ângulo diminui)
+            // - Mão sobe (yCenter diminui) = Braço desce (ângulo aumenta)
             const servoUpDown = mapValue(yCenter, 0.2, 0.8, 180, 70);
             
-            const servoForwardBackward = mapValue(handArea, 0.05, 0.15, 60, 120);
+            // MOVIMENTO DE PROFUNDIDADE AJUSTADO:
+            // - Mão aproxima (handArea aumenta) = Vai para frente (ângulo diminui)
+            // - Mão afasta (handArea diminui) = Vai para trás (ângulo aumenta)
+            const servoForwardBackward = mapValue(handArea, 0.05, 0.15, 120, 60);
             
             // Detectar gesto de pinça (polegar e indicador)
             const thumbTip = landmarks[4];
@@ -608,25 +686,29 @@
             
             if (!handData) {
                 // Desenhar mensagem quando não há mão detectada
-                vizCtx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                vizCtx.fillStyle = 'rgba(10, 15, 40, 0.9)';
                 vizCtx.fillRect(0, 0, vizCanvas.width, vizCanvas.height);
                 
-                vizCtx.fillStyle = 'white';
-                vizCtx.font = '24px Arial';
+                vizCtx.fillStyle = '#4a9eff';
+                vizCtx.font = 'bold 24px Arial';
                 vizCtx.textAlign = 'center';
                 vizCtx.fillText('Aguardando detecção de mão...', vizCanvas.width/2, vizCanvas.height/2);
+                
+                // Desenhar ícone de mão
+                vizCtx.font = '100px Arial';
+                vizCtx.fillText('✋', vizCanvas.width/2, vizCanvas.height/2 + 80);
                 return;
             }
             
             // Desenhar plano de fundo gradiente
             const gradient = vizCtx.createLinearGradient(0, 0, vizCanvas.width, vizCanvas.height);
             gradient.addColorStop(0, '#1a2a6c');
-            gradient.addColorStop(1, '#b21f1f');
+            gradient.addColorStop(1, '#2a1a6c');
             vizCtx.fillStyle = gradient;
             vizCtx.fillRect(0, 0, vizCanvas.width, vizCanvas.height);
             
             // Desenhar grade
-            vizCtx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            vizCtx.strokeStyle = 'rgba(100, 180, 255, 0.1)';
             vizCtx.lineWidth = 1;
             
             // Linhas verticais
@@ -673,49 +755,27 @@
             vizCtx.fill();
             
             // Desenhar rótulos
-            vizCtx.fillStyle = 'white';
-            vizCtx.font = '16px Arial';
+            vizCtx.fillStyle = '#aad4ff';
+            vizCtx.font = 'bold 16px Arial';
             vizCtx.textAlign = 'center';
-            vizCtx.fillText('Esquerda', 30, vizCanvas.height - 20);
-            vizCtx.fillText('Direita', vizCanvas.width - 30, vizCanvas.height - 20);
+            vizCtx.fillText('Esquerda', 40, vizCanvas.height - 20);
+            vizCtx.fillText('Direita', vizCanvas.width - 40, vizCanvas.height - 20);
             vizCtx.fillText('Cima', vizCanvas.width/2, 30);
             vizCtx.fillText('Baixo', vizCanvas.width/2, vizCanvas.height - 10);
             
-            // Desenhar ícone da garra
-            const gripperIconSize = 30;
-            const gripperIconX = vizCanvas.width - gripperIconSize - 20;
-            const gripperIconY = 20;
+            // Desenhar setas de movimento
+            vizCtx.font = '30px Arial';
+            vizCtx.fillText('←', 40, vizCanvas.height/2);
+            vizCtx.fillText('→', vizCanvas.width - 40, vizCanvas.height/2);
+            vizCtx.fillText('↑', vizCanvas.width/2, 50);
+            vizCtx.fillText('↓', vizCanvas.width/2, vizCanvas.height - 20);
             
-            vizCtx.fillStyle = handData.gripperClosed ? '#FF5555' : '#55FF55';
-            vizCtx.beginPath();
-            vizCtx.moveTo(gripperIconX, gripperIconY);
-            vizCtx.lineTo(gripperIconX + gripperIconSize, gripperIconY);
-            vizCtx.lineTo(gripperIconX + gripperIconSize, gripperIconY + gripperIconSize/2);
-            vizCtx.lineTo(gripperIconX + gripperIconSize*0.8, gripperIconY + gripperIconSize);
-            vizCtx.lineTo(gripperIconX + gripperIconSize*0.2, gripperIconY + gripperIconSize);
-            vizCtx.lineTo(gripperIconX, gripperIconY + gripperIconSize/2);
-            vizCtx.closePath();
-            vizCtx.fill();
-            vizCtx.strokeStyle = 'white';
-            vizCtx.lineWidth = 2;
-            vizCtx.stroke();
-            
-            // Desenhar movimento da garra
-            if (handData.gripperClosed) {
-                vizCtx.beginPath();
-                vizCtx.moveTo(gripperIconX + gripperIconSize*0.2, gripperIconY + gripperIconSize*0.7);
-                vizCtx.lineTo(gripperIconX + gripperIconSize*0.35, gripperIconY + gripperIconSize*0.5);
-                
-                vizCtx.moveTo(gripperIconX + gripperIconSize*0.8, gripperIconY + gripperIconSize*0.7);
-                vizCtx.lineTo(gripperIconX + gripperIconSize*0.65, gripperIconY + gripperIconSize*0.5);
-                vizCtx.stroke();
-            }
-            
-            // Desenhar aviso de inversão vertical
-            vizCtx.fillStyle = '#ffcc00';
+            // Desenhar avisos de movimento ajustado
+            vizCtx.fillStyle = '#4affd0';
             vizCtx.font = 'bold 14px Arial';
             vizCtx.textAlign = 'center';
-            vizCtx.fillText('MOVIMENTO VERTICAL INVERTIDO', vizCanvas.width/2, 60);
+            vizCtx.fillText('↑ MÃO = ↓ BRAÇO', vizCanvas.width/2, 70);
+            vizCtx.fillText('⇨ MÃO = ⇨ BRAÇO', vizCanvas.width/2, 90);
         }
         
         // Conectar ao WebSocket
