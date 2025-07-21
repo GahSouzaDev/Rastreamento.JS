@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Quebra-Cabeça com Mãos</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        header {
+            text-align: center;
+            padding: 10px 0;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+            text-shadow: 0 2px 10px rgba(0, 200, 255, 0.5);
+            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(10, 15, 40, 0.95);
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+        
+        #menuScreen {
+            background: radial-gradient(circle, #1a1a2e 0%, #0f3460 100%);
+        }
+        
+        #gameScreen, #levelCompleteScreen {
+            display: none;
+            opacity: 0;
+        }
+        
+        .screen-content {
+            max-width: 800px;
+            text-align: center;
+            padding: 30px;
+            background: rgba(20, 30, 60, 0.8);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 50, 150, 0.5);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+        }
+        
+        .screen h2 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: #ff9a9e;
+        }
+        
+        .screen p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #cce6ff;
+        }
+        
+        .instructions {
+            text-align: left;
+            background: rgba(30, 50, 100, 0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .instructions h3 {
+            margin-bottom: 15px;
+            color: #fad0c4;
+            text-align: center;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .instructions li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #ff9a9e;
+            font-size: 1.2rem;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            color: #1a1a2e;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+            min-width: 200px;
+        }
+        
+        button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(255, 154, 158, 0.6);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .difficulty-btn {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4);
+        }
+        
+        .difficulty-btn:hover {
+            box-shadow: 0 8px 20px rgba(0, 150, 255, 0.6);
+        }
+        
+        .difficulty-btn.beginner {
+            background: linear-gradient(135deg, #65ff8e, #4affd0);
+        }
+        
+        .difficulty-btn.easy {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+        }
+        
+        .difficulty-btn.medium {
+            background: linear-gradient(135deg, #ffd166, #ff9a9e);
+        }
+        
+        .difficulty-btn.hard {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+        }
+        
+        .camera-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            background: #000;
+            box-shadow: 0 0 30px rgba(0, 100, 255, 0.4);
+        }
+        
+        #camera {
+            width: 100%;
+            height: 100%;
+            display: block;
+            transform: scaleX(-1);
+            object-fit: cover;
+        }
+        
+        #outputCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .game-ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 20;
+            background: rgba(20, 30, 60, 0.7);
+            padding: 15px;
+            border-radius: 12px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .game-info {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .info-card {
+            background: rgba(30, 50, 100, 0.8);
+            border-radius: 10px;
+            padding: 10px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 120px;
+        }
+        
+        .info-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 5px;
+            color: #aad4ff;
+        }
+        
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #4affd0;
+            text-shadow: 0 0 10px rgba(74, 255, 208, 0.5);
+        }
+        
+        .game-area {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .puzzle-container {
+            position: absolute;
+            top: 80px;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .pieces-area, .target-area {
+            background: rgba(30, 50, 100, 0.3);
+            border: 2px dashed rgba(100, 180, 255, 0.4);
+            border-radius: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .puzzle-piece {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            cursor: grab;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            position: absolute;
+            pointer-events: auto;
+        }
+        
+        .puzzle-piece.hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.7);
+        }
+        
+        .puzzle-piece.dragging {
+            cursor: grabbing;
+            z-index: 50;
+            transform: scale(1.15);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.9);
+        }
+        
+        .piece-1 { background: linear-gradient(135deg, #ff9a9e, #fad0c4); }
+        .piece-2 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .piece-3 { background: linear-gradient(135deg, #65ff8e, #4affd0); }
+        .piece-4 { background: linear-gradient(135deg, #ffd166, #ff9a9e); }
+        .piece-5 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        .piece-6 { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+        
+        .target-slot {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        
+        .target-slot.highlight {
+            background: rgba(100, 255, 100, 0.2);
+            border: 2px dashed rgba(100, 255, 100, 0.8);
+        }
+        
+        .target-slot.filled {
+            background: rgba(100, 255, 100, 0.3);
+            border: 2px solid rgba(100, 255, 100, 0.8);
+        }
+        
+        .piece-in-slot {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            border-radius: 10px;
+        }
+        
+        .controls-info {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        
+        .control-card {
+            background: rgba(30, 50, 100, 0.7);
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(100, 180, 255, 0.2);
+        }
+        
+        .control-card h3 {
+            color: #fad0c4;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .control-card p {
+            line-height: 1.6;
+            color: #cce6ff;
+            font-size: 0.95rem;
+        }
+        
+        .music-control {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(30, 50, 100, 0.8);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .music-control i {
+            font-size: 1.5rem;
+            color: #4affd0;
+        }
+        
+        .completion-message {
+            font-size: 2rem;
+            color: #65ff8e;
+            text-align: center;
+            margin: 20px 0;
+            text-shadow: 0 0 10px rgba(101, 255, 142, 0.7);
+        }
+        
+        .level-stars {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .star {
+            font-size: 2.5rem;
+            color: #ffd166;
+        }
+        
+        .camera-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            z-index: 1000;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .camera-error h3 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #ff9a9e;
+        }
+        
+        .camera-error p {
+            max-width: 600px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .hand-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            opacity: 0.3;
+            z-index: 5;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.5; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+        }
+        
+        .control-instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            font-size: 1.1rem;
+            color: #4affd0;
+            z-index: 30;
+        }
+        
+        .status-info {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            color: #4affd0;
+            z-index: 100;
+        }
+        
+        .mission-title {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 1.5rem;
+            color: #ffd166;
+            text-shadow: 0 0 10px rgba(255, 209, 102, 0.7);
+            z-index: 30;
+        }
+        
+        .letter-piece {
+            font-size: 3rem;
+            font-weight: bold;
+        }
+        
+        .word-piece {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 5px;
+            text-align: center;
+            word-break: break-all;
+        }
+        
+        .shape-piece {
+            font-size: 2.5rem;
+        }
+        
+        .target-letter {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .target-word {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.7);
+            word-break: break-all;
+            padding: 5px;
+        }
+        
+        .target-shape {
+            font-size: 2.5rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        @media (max-width: 768px) {
+            .puzzle-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+            
+            .puzzle-piece, .target-slot {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .game-ui {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .game-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .info-card {
+                min-width: auto;
+                padding: 8px 15px;
+            }
+            
+            .letter-piece {
+                font-size: 2.5rem;
+            }
+            
+            .word-piece {
+                font-size: 1.2rem;
+            }
+            
+            .target-word {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="game-container">
+            <!-- Tela de Menu -->
+            <div id="menuScreen" class="screen">
+                <div class="screen-content">
+                    <h2>Quebra-Cabeça com Mãos</h2>
+                    <p>Um jogo acessível que permite controlar as peças usando apenas movimentos das mãos!</p>
+                    
+                    <div class="instructions">
+                        <h3>Como Jogar:</h3>
+                        <ul>
+                            <li>Posicione sua mão diante da câmera para iniciar</li>
+                            <li>Use o dedo indicador para mover as peças do quebra-cabeça</li>
+                            <li>Arraste as peças da área esquerda para as posições corretas na área direita</li>
+                            <li>Solte a peça quando ela estiver sobre a posição correta para encaixar</li>
+                            <li>Complete todos os pares para avançar de nível!</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="controls-info">
+                        <div class="control-card">
+                            <h3><i class="fas fa-hand-point-up"></i> Controle de Peças</h3>
+                            <p>Mova seu dedo indicador sobre a peça e aperte o polegar contra o indicador para pegar. Solte quando estiver na posição correta.</p>
+                        </div>
+                        <div class="control-card">
+                            <h3><i class="fas fa-trophy"></i> Sistema de Pontuação</h3>
+                            <p>Ganhe pontos por cada peça colocada corretamente. Complete o nível rapidamente para ganhar mais estrelas!</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Selecione a Dificuldade:</h3>
+                    <div class="btn-group">
+                        <button id="beginnerBtn" class="difficulty-btn beginner" data-level="beginner">Formas</button>
+                        <button id="easyBtn" class="difficulty-btn easy" data-level="easy">Letras</button>
+                        <button id="mediumBtn" class="difficulty-btn medium" data-level="medium">Palavras</button>
+                        <button id="hardBtn" class="difficulty-btn hard" data-level="hard">Palavras Difíceis</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tela de Jogo -->
+            <div id="gameScreen" class="screen">
+                <div class="camera-container">
+                    <video id="camera" autoplay playsinline></video>
+                    <canvas id="outputCanvas"></canvas>
+                    
+                    <div class="hand-indicator">✋</div>
+                    
+                    <div class="game-area">
+                        <div class="mission-title" id="missionTitle">Missão: Formas Geométricas</div>
+                        
+                        <div class="game-ui">
+                            <div class="game-info">
+                                <div class="info-card">
+                                    <div class="info-label">Nível</div>
+                                    <div class="info-value" id="levelValue">1</div>
+                                </div>
+                                <div class="info-card">
+                                    <div class="info-label">Peças</div>
+                                    <div class="info-value" id="piecesValue">0/0</div>
+                                </div>
+                                <div class="info-card">
+                                    <div class="info-label">Tempo</div>
+                                    <div class="info-value" id="timerValue">00:00</div>
+                                </div>
+                            </div>
+                            <button id="backToMenuBtn"><i class="fas fa-home"></i> Menu</button>
+                        </div>
+                        
+                        <div class="puzzle-container">
+                            <div class="pieces-area" id="piecesArea"></div>
+                            <div class="target-area" id="targetArea"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="control-instructions" id="controlHint">
+                        Posicione seu dedo indicador sobre uma peça e aperte o polegar contra o indicador para pegá-la
+                    </div>
+                    
+                    <div class="status-info" id="statusInfo">
+                        Aguardando início do jogo...
+                    </div>
+                </div>
+                
+                <div class="music-control" id="musicToggle">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+            </div>
+            
+            <!-- Tela de Nível Completo -->
+            <div id="levelCompleteScreen" class="screen">
+                <div class="screen-content">
+                    <h2>Nível Completo!</h2>
+                    <div class="completion-message" id="completionMessage">Parabéns! Você completou o nível!</div>
+                    
+                    <div class="level-stars">
+                        <i class="fas fa-star star"></i>
+                        <i class="fas fa-star star"></i>
+                        <i class="fas fa-star star"></i>
+                    </div>
+                    
+                    <div class="info-card" style="margin: 20px auto;">
+                        <div class="info-label">Tempo</div>
+                        <div class="info-value" id="finalTime">00:00</div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button id="nextLevelBtn">Próximo Nível</button>
+                        <button id="menuBtn">Voltar ao Menu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Elementos do jogo
+        const menuScreen = document.getElementById('menuScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const levelCompleteScreen = document.getElementById('levelCompleteScreen');
+        const cameraContainer = document.querySelector('.camera-container');
+        const videoElement = document.getElementById('camera');
+        const outputCanvas = document.getElementById('outputCanvas');
+        const outputCtx = outputCanvas.getContext('2d');
+        const piecesArea = document.getElementById('piecesArea');
+        const targetArea = document.getElementById('targetArea');
+        const levelValue = document.getElementById('levelValue');
+        const piecesValue = document.getElementById('piecesValue');
+        const timerValue = document.getElementById('timerValue');
+        const musicToggle = document.getElementById('musicToggle');
+        const missionTitle = document.getElementById('missionTitle');
+        const backgroundMusic = new Audio('https://assets.mixkit.co/music/preview/mixkit-game-show-suspense-waiting-667.mp3');
+        const pickupSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-select-click-1109.mp3');
+        const dropSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-basketball-ball-hitting-the-net-3127.mp3');
+        const correctSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3');
+        const winSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3');
+        const finalTime = document.getElementById('finalTime');
+        const completionMessage = document.getElementById('completionMessage');
+        const controlHint = document.getElementById('controlHint');
+        const statusInfo = document.getElementById('statusInfo');
+        const backToMenuBtn = document.getElementById('backToMenuBtn');
+        const beginnerBtn = document.getElementById('beginnerBtn');
+        const easyBtn = document.getElementById('easyBtn');
+        const mediumBtn = document.getElementById('mediumBtn');
+        const hardBtn = document.getElementById('hardBtn');
+        const nextLevelBtn = document.getElementById('nextLevelBtn');
+        const menuBtn = document.getElementById('menuBtn');
+        
+        // Configurações do jogo
+        let gameState = {
+            currentLevel: 1,
+            difficulty: 'beginner',
+            pieces: [],
+            targets: [],
+            draggedPiece: null,
+            placedPieces: 0,
+            totalPieces: 0,
+            startTime: 0,
+            timerInterval: null,
+            musicPlaying: true,
+            handDetected: false,
+            cameraError: false,
+            lastPieceHover: null
+        };
+        
+        // Configurações de nível
+        const levelConfig = {
+            beginner: { 
+                type: 'shapes', 
+                pieces: 4, 
+                pieceSize: 100, 
+                slotSize: 110, 
+                timeLimit: 120,
+                title: 'Formas Geométricas'
+            },
+            easy: { 
+                type: 'letters', 
+                pieces: 5, 
+                pieceSize: 100, 
+                slotSize: 110, 
+                timeLimit: 120,
+                title: 'Letras do Alfabeto'
+            },
+            medium: { 
+                type: 'words', 
+                pieces: 5, 
+                pieceSize: 120, 
+                slotSize: 130, 
+                timeLimit: 180,
+                title: 'Palavras de 5 Letras'
+            },
+            hard: { 
+                type: 'compoundWords', 
+                pieces: 3, 
+                pieceSize: 150, 
+                slotSize: 160, 
+                timeLimit: 240,
+                title: 'Palavras Compostas'
+            }
+        };
+        
+        // Conjuntos de dados para cada tipo de nível
+        const levelData = {
+            shapes: ['●', '■', '▲', '◆', '★', '♥', '✪', '✿'],
+            letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split(''),
+            words: ['ARARA', 'VIOLA', 'BALÃO', 'CASA', 'PATO', 'GATO', 'RATO', 'FOGO', 'AMOR', 'PÃO'],
+            compoundWords: ['ALGODÃO DOCE', 'AERONÁUTICA', 'PARALELEPÍPEDO', 'TRANSGRESSÃO', 'HIDROELÉTRICA', 'PLANADOR', 'CATA-VENTO', 'GUARDA-CHUVA']
+        };
+        
+        // Inicializar MediaPipe Hands
+        const hands = new self.Hands({
+            locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+            }
+        });
+        
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.7,
+            minTrackingConfidence: 0.5
+        });
+        
+        hands.onResults(processHandResults);
+        
+        // Processar resultados da detecção de mãos
+        function processHandResults(results) {
+            // Limpar canvas de saída
+            outputCtx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+            outputCtx.save();
+            outputCtx.scale(-1, 1);
+            outputCtx.translate(-outputCanvas.width, 0);
+            
+            // Desenhar vídeo
+            outputCtx.drawImage(
+                results.image, 0, 0, outputCanvas.width, outputCanvas.height);
+            
+            // Verificar se há mãos detectadas
+            gameState.handDetected = results.multiHandLandmarks && results.multiHandLandmarks.length > 0;
+            
+            // Processar a primeira mão detectada
+            if (gameState.handDetected) {
+                const landmarks = results.multiHandLandmarks[0];
+                
+                // Desenhar landmarks
+                self.drawConnectors(
+                    outputCtx, landmarks, self.HAND_CONNECTIONS,
+                    {color: '#00FF00', lineWidth: 2});
+                self.drawLandmarks(outputCtx, landmarks, {
+                    color: '#FF0000',
+                    lineWidth: 1,
+                    radius: 4
+                });
+                
+                // Processar dados da mão para o jogo
+                processHandForGame(landmarks, results.image);
+            } else {
+                // Nenhuma mão detectada
+                if (gameState.lastPieceHover) {
+                    gameState.lastPieceHover.element.classList.remove('hover');
+                    gameState.lastPieceHover = null;
+                }
+                statusInfo.textContent = "Status: Aguardando mão...";
+            }
+            
+            outputCtx.restore();
+        }
+        
+        // Processar dados da mão para interação com o jogo
+        function processHandForGame(landmarks, videoImage) {
+            // Obter dimensões do container
+            const containerRect = cameraContainer.getBoundingClientRect();
+            const videoWidth = videoImage.width;
+            const videoHeight = videoImage.height;
+            const scaleX = containerRect.width / videoWidth;
+            const scaleY = containerRect.height / videoHeight;
+            
+            // Obter posição do dedo indicador (landmark 8)
+            const indexFinger = landmarks[8];
+            // Inverter horizontalmente e escalar para o container
+            const indexFingerX = (1 - indexFinger.x) * videoWidth * scaleX;
+            const indexFingerY = indexFinger.y * videoHeight * scaleY;
+            
+            // Obter posição do polegar (landmark 4)
+            const thumbTip = landmarks[4];
+            const thumbX = (1 - thumbTip.x) * videoWidth * scaleX;
+            const thumbY = thumbTip.y * videoHeight * scaleY;
+            
+            // Calcular distância entre polegar e indicador
+            const distance = Math.sqrt(
+                Math.pow(indexFingerX - thumbX, 2) + 
+                Math.pow(indexFingerY - thumbY, 2)
+            );
+            
+            // Atualizar hint com base na distância
+            if (distance < 100) {
+                controlHint.textContent = "Solte a peça abrindo os dedos";
+            } else {
+                controlHint.textContent = "Posicione seu dedo indicador sobre uma peça e aperte o polegar contra o indicador para pegá-la";
+            }
+            
+            // Se estivermos arrastando uma peça
+            if (gameState.draggedPiece) {
+                // Atualizar posição da peça (coordenadas são relativas ao container)
+                const piece = gameState.draggedPiece.element;
+                
+                piece.style.left = (indexFingerX - piece.offsetWidth/2) + 'px';
+                piece.style.top = (indexFingerY - piece.offsetHeight/2) + 'px';
+                
+                statusInfo.textContent = `Arrastando peça: ${gameState.draggedPiece.symbol} | Distância: ${distance.toFixed(1)}`;
+                
+                // Verificar se podemos soltar a peça (polegar e indicador juntos)
+                if (distance > 100) {
+                    dropPiece();
+                }
+            } else {
+                // Verificar se estamos sobre uma peça
+                let currentHover = null;
+                
+                for (let piece of gameState.pieces) {
+                    if (piece.placed) continue;
+                    
+                    const pieceRect = piece.element.getBoundingClientRect();
+                    const centerX = pieceRect.left + pieceRect.width/2;
+                    const centerY = pieceRect.top + pieceRect.height/2;
+                    
+                    // Calcular distância entre dedo e centro da peça (em coordenadas absolutas)
+                    const distToPiece = Math.sqrt(
+                        Math.pow(centerX - (containerRect.left + indexFingerX), 2) + 
+                        Math.pow(centerY - (containerRect.top + indexFingerY), 2)
+                    );
+                    
+                    // Se o dedo estiver perto o suficiente da peça (aumentamos a área de detecção)
+                    if (distToPiece < pieceRect.width) {
+                        // Destacar a peça
+                        piece.element.classList.add('hover');
+                        currentHover = piece;
+                        statusInfo.textContent = `Sobre a peça: ${piece.symbol} | Distância: ${distToPiece.toFixed(1)}`;
+                        
+                        // Se polegar e indicador estiverem separados, pegar a peça
+                        if (distance < 100) {
+                            grabPiece(piece);
+                            break;
+                        }
+                    } else {
+                        // Remover destaque
+                        piece.element.classList.remove('hover');
+                    }
+                }
+                
+                // Atualizar último hover
+                if (gameState.lastPieceHover && gameState.lastPieceHover !== currentHover) {
+                    gameState.lastPieceHover.element.classList.remove('hover');
+                }
+                gameState.lastPieceHover = currentHover;
+                
+                if (!currentHover) {
+                    statusInfo.textContent = `Mão detectada | Distância dedos: ${distance.toFixed(1)}`;
+                }
+            }
+        }
+        
+        // Pegar uma peça
+        function grabPiece(piece) {
+            gameState.draggedPiece = piece;
+            piece.element.classList.add('dragging');
+            piece.element.classList.remove('hover');
+            piece.element.style.zIndex = '100';
+            playSound(pickupSound);
+            controlHint.textContent = "Arraste a peça para a posição correta e solte abrindo os dedos";
+            statusInfo.textContent = `Pegou a peça: ${piece.symbol}`;
+        }
+        
+        // Soltar a peça
+        function dropPiece() {
+            if (!gameState.draggedPiece) return;
+            
+            const piece = gameState.draggedPiece;
+            piece.element.classList.remove('dragging');
+            
+            // Verificar se soltou sobre um slot
+            let placed = false;
+            for (let target of gameState.targets) {
+                if (target.piece) continue; // Slot já ocupado
+                
+                const slotRect = target.element.getBoundingClientRect();
+                const pieceRect = piece.element.getBoundingClientRect();
+                
+                // Verificar sobreposição (cálculo simplificado)
+                const overlapX = Math.abs(
+                    (pieceRect.left + pieceRect.width/2) - 
+                    (slotRect.left + slotRect.width/2)
+                ) < (slotRect.width/2);
+                
+                const overlapY = Math.abs(
+                    (pieceRect.top + pieceRect.height/2) - 
+                    (slotRect.top + slotRect.height/2)
+                ) < (slotRect.height/2);
+                
+                // Se estiver sobre o slot correto
+                if (overlapX && overlapY && piece.symbol === target.symbol) {
+                    placePieceInSlot(piece, target);
+                    placed = true;
+                    break;
+                }
+            }
+            
+            // Se não colocou no slot, voltar para a área de peças
+            if (!placed) {
+                resetPiecePosition(piece);
+                playSound(dropSound);
+                statusInfo.textContent = "Peça solta na área";
+            }
+            
+            gameState.draggedPiece = null;
+        }
+        
+        // Colocar a peça no slot correto
+        function placePieceInSlot(piece, target) {
+            piece.placed = true;
+            target.piece = piece;
+            
+            // Mover visualmente a peça para o slot (usando coordenadas absolutas dentro do container)
+            const slotRect = target.element.getBoundingClientRect();
+            const containerRect = cameraContainer.getBoundingClientRect();
+            
+            piece.element.style.left = (slotRect.left - containerRect.left) + 'px' - 110;
+            piece.element.style.top = (slotRect.top - containerRect.top) + 'px' - 110;
+            
+            // Atualizar slot
+            target.element.classList.remove('highlight');
+            target.element.classList.add('filled');
+            
+            // Atualizar contador
+            gameState.placedPieces++;
+            piecesValue.textContent = `${gameState.placedPieces}/${gameState.totalPieces}`;
+            
+            // Tocar som de acerto
+            playSound(correctSound);
+            statusInfo.textContent = `Peça correta: ${piece.symbol} colocada!`;
+            
+            // Verificar se o nível foi completado
+            if (gameState.placedPieces === gameState.totalPieces) {
+                completeLevel();
+            }
+        }
+        
+        // Resetar posição da peça
+        function resetPiecePosition(piece) {
+            // Voltar para posição inicial aleatória na área de peças
+            const areaRect = piecesArea.getBoundingClientRect();
+            const containerRect = cameraContainer.getBoundingClientRect();
+            
+            const leftOffset = areaRect.left - containerRect.left;
+            const topOffset = areaRect.top - containerRect.top;
+            
+            const maxX = areaRect.width - piece.element.offsetWidth;
+            const maxY = areaRect.height - piece.element.offsetHeight;
+            
+            const randX = Math.floor(Math.random() * maxX);
+            const randY = Math.floor(Math.random() * maxY);
+            
+            piece.element.style.left = (leftOffset + randX) + 'px';
+            piece.element.style.top = (topOffset + randY) + 'px';
+        }
+        
+        // Iniciar o jogo
+        function startGame(difficulty) {
+            gameState.difficulty = difficulty;
+            gameState.currentLevel = 1;
+            
+            // Configurar nível
+            setupLevel();
+            
+            // Mostrar tela de jogo
+            menuScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            gameScreen.style.opacity = '1';
+            levelCompleteScreen.style.display = 'none';
+            
+            // Iniciar câmera
+            initCamera();
+            
+            // Iniciar música
+            if (gameState.musicPlaying) {
+                backgroundMusic.loop = true;
+                backgroundMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
+            }
+            
+            statusInfo.textContent = "Jogo iniciado! Posicione sua mão...";
+        }
+        
+        // Configurar nível
+        function setupLevel() {
+            // Limpar estado anterior
+            piecesArea.innerHTML = '';
+            targetArea.innerHTML = '';
+            gameState.pieces = [];
+            gameState.targets = [];
+            gameState.draggedPiece = null;
+            gameState.placedPieces = 0;
+            gameState.lastPieceHover = null;
+            
+            // Obter configuração do nível
+            const config = levelConfig[gameState.difficulty];
+            gameState.totalPieces = config.pieces;
+            
+            // Atualizar UI
+            levelValue.textContent = gameState.currentLevel;
+            piecesValue.textContent = `0/${gameState.totalPieces}`;
+            missionTitle.textContent = `Missão: ${config.title}`;
+            
+            // Criar peças e slots
+            const usedSymbols = [];
+            const dataSet = levelData[config.type];
+            
+            for (let i = 0; i < gameState.totalPieces; i++) {
+                // Escolher símbolo único
+                let symbol;
+                do {
+                    symbol = dataSet[Math.floor(Math.random() * dataSet.length)];
+                } while (usedSymbols.includes(symbol));
+                
+                usedSymbols.push(symbol);
+                
+                // Criar peça
+                const piece = document.createElement('div');
+                piece.className = `puzzle-piece piece-${(i % 6) + 1}`;
+                piece.style.width = config.pieceSize + 'px' ;
+                piece.style.height = config.pieceSize + 'px' ;
+                
+                // Definir conteúdo com base no tipo
+                switch (config.type) {
+                    case 'shapes':
+                        piece.innerHTML = `<div class="shape-piece">${symbol}</div>`;
+                        break;
+                    case 'letters':
+                        piece.innerHTML = `<div class="letter-piece">${symbol}</div>`;
+                        break;
+                    case 'words':
+                    case 'compoundWords':
+                        piece.innerHTML = `<div class="word-piece">${symbol}</div>`;
+                        break;
+                }
+                
+                // Posicionar aleatoriamente na área de peças
+                const areaRect = piecesArea.getBoundingClientRect();
+                const containerRect = cameraContainer.getBoundingClientRect();
+                
+                const leftOffset = areaRect.left - containerRect.left;
+                const topOffset = areaRect.top - containerRect.top;
+                
+                const maxX = areaRect.width - config.pieceSize;
+                const maxY = areaRect.height - config.pieceSize;
+                
+                const randX = Math.floor(Math.random() * maxX * -2);
+                const randY = Math.floor(Math.random() * maxY * -2);
+                
+                piece.style.left = (leftOffset + randX) + 'px';
+                piece.style.top = (topOffset + randY) + 'px';
+                
+                piecesArea.appendChild(piece);
+                
+                // Adicionar ao estado do jogo
+                gameState.pieces.push({
+                    id: i,
+                    element: piece,
+                    symbol: symbol,
+                    placed: false
+                });
+                
+                // Criar slot de destino
+                const slot = document.createElement('div');
+                slot.className = 'target-slot';
+                slot.style.width = config.slotSize + 'px';
+                slot.style.height = config.slotSize + 'px';
+                
+                // Definir conteúdo do slot com base no tipo
+                switch (config.type) {
+                    case 'shapes':
+                        slot.innerHTML = `<div class="target-shape">${symbol}</div>`;
+                        break;
+                    case 'letters':
+                        slot.innerHTML = `<div class="target-letter">${symbol.toLowerCase()}</div>`;
+                        break;
+                    case 'words':
+                        // Mostrar palavra com traços (ex: A _ A R A)
+                        const dashedWord = symbol.split('').map((char, idx) => 
+                            idx === 0 || idx === symbol.length - 1 ? char : '_').join(' ');
+                        slot.innerHTML = `<div class="target-word">${dashedWord}</div>`;
+                        break;
+                    case 'compoundWords':
+                        // Mostrar apenas a primeira palavra (ex: "ALGODÃO ...")
+                        const firstWord = symbol.split(' ')[0];
+                        slot.innerHTML = `<div class="target-word">${firstWord} ...</div>`;
+                        break;
+                }
+                
+                // Posicionar aleatoriamente na área de destino
+                const targetRect = targetArea.getBoundingClientRect();
+                const targetContainerRect = cameraContainer.getBoundingClientRect();
+                
+                const targetLeftOffset = targetRect.left - targetContainerRect.left;
+                const targetTopOffset = targetRect.top - targetContainerRect.top;
+                
+                const targetMaxX = targetRect.width - config.slotSize;
+                const targetMaxY = targetRect.height - config.slotSize;
+                
+                const targetX = Math.floor(Math.random() * targetMaxX);
+                const targetY = Math.floor(Math.random() * targetMaxY);
+                
+                slot.style.left = (targetLeftOffset + targetX) + 'px';
+                slot.style.top = (targetTopOffset + targetY) + 'px';
+                
+                targetArea.appendChild(slot);
+                
+                // Adicionar ao estado do jogo
+                gameState.targets.push({
+                    id: i,
+                    element: slot,
+                    symbol: symbol,
+                    piece: null
+                });
+            }
+            
+            // Iniciar temporizador
+            startTimer();
+        }
+        
+        // Iniciar temporizador
+        function startTimer() {
+            clearInterval(gameState.timerInterval);
+            gameState.startTime = Date.now();
+            
+            gameState.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                timerValue.textContent = `${minutes}:${seconds}`;
+                
+                // Verificar limite de tempo
+                const config = levelConfig[gameState.difficulty];
+                if (elapsed >= config.timeLimit) {
+                    // Tempo esgotado
+                    clearInterval(gameState.timerInterval);
+                    alert('Tempo esgotado! Tente novamente.');
+                    backToMenu();
+                }
+            }, 1000);
+        }
+        
+        // Completar nível
+        function completeLevel() {
+            clearInterval(gameState.timerInterval);
+            
+            // Calcular tempo decorrido
+            const elapsed = Math.floor((Date.now() - gameState.startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            finalTime.textContent = `${minutes}:${seconds}`;
+            
+            // Mensagem de conclusão
+            completionMessage.textContent = gameState.currentLevel === 3 ? 
+                "Parabéns! Você completou todos os níveis!" : 
+                "Parabéns! Você completou o nível!";
+            
+            // Mostrar tela de conclusão
+            gameScreen.style.display = 'none';
+            levelCompleteScreen.style.display = 'flex';
+            levelCompleteScreen.style.opacity = '1';
+            
+            // Tocar som de vitória
+            playSound(winSound);
+        }
+        
+        // Tocar um som
+        function playSound(sound) {
+            if (!gameState.musicPlaying) return;
+            
+            sound.currentTime = 0;
+            sound.play().catch(e => console.log("Erro ao tocar som:", e));
+        }
+        
+        // Alternar música
+        function toggleMusic() {
+            gameState.musicPlaying = !gameState.musicPlaying;
+            
+            const icon = musicToggle.querySelector('i');
+            if (gameState.musicPlaying) {
+                icon.className = 'fas fa-volume-up';
+                backgroundMusic.play().catch(e => console.log("Erro ao tocar música:", e));
+            } else {
+                icon.className = 'fas fa-volume-mute';
+                backgroundMusic.pause();
+            }
+        }
+        
+        // Voltar ao menu
+        function backToMenu() {
+            clearInterval(gameState.timerInterval);
+            gameScreen.style.display = 'none';
+            levelCompleteScreen.style.display = 'none';
+            menuScreen.style.display = 'flex';
+            backgroundMusic.pause();
+        }
+        
+        // Iniciar câmera com tratamento de erros
+        async function initCamera() {
+            try {
+                // Verificar se já existe uma mensagem de erro
+                if (gameState.cameraError) {
+                    document.querySelector('.camera-error')?.remove();
+                    gameState.cameraError = false;
+                }
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 1280 }, 
+                        height: { ideal: 720 },
+                        facingMode: 'user' 
+                    } 
+                }).catch(err => {
+                    throw new Error('Permissão de câmera negada ou dispositivo não disponível.');
+                });
+                
+                videoElement.srcObject = stream;
+                
+                // Ajustar canvas ao tamanho do vídeo
+                videoElement.onloadedmetadata = () => {
+                    outputCanvas.width = videoElement.videoWidth;
+                    outputCanvas.height = videoElement.videoHeight;
+                    
+                    // Ajustar container ao tamanho do vídeo
+                    const aspectRatio = videoElement.videoWidth / videoElement.videoHeight;
+                    cameraContainer.style.aspectRatio = aspectRatio;
+                    
+                    // Reposicionar as peças após o vídeo carregar
+                    setTimeout(() => {
+                        for (let piece of gameState.pieces) {
+                            resetPiecePosition(piece);
+                        }
+                    }, 500);
+                };
+                
+                // Iniciar detecção
+                const camera = new self.Camera(videoElement, {
+                    onFrame: async () => {
+                        await hands.send({ image: videoElement });
+                    },
+                    width: videoElement.videoWidth,
+                    height: videoElement.videoHeight
+                });
+                camera.start();
+            } catch (error) {
+                console.error('Erro ao acessar a câmera:', error);
+                showCameraError(error.message || 'Não foi possível acessar a câmera. Verifique as permissões.');
+            }
+        }
+        
+        // Mostrar mensagem de erro da câmera
+        function showCameraError(message) {
+            gameState.cameraError = true;
+            
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'camera-error';
+            errorMessage.innerHTML = `
+                <h3>Erro ao acessar a câmera</h3>
+                <p>${message}</p>
+                <p>Por favor, verifique se você tem uma câmera conectada e concedeu permissão para acessá-la.</p>
+                <button id="retryCamera">Tentar Novamente</button>
+            `;
+            
+            cameraContainer.appendChild(errorMessage);
+            
+            document.getElementById('retryCamera').addEventListener('click', () => {
+                errorMessage.remove();
+                initCamera();
+            });
+        }
+        
+        // Event Listeners
+        beginnerBtn.addEventListener('click', () => startGame('beginner'));
+        easyBtn.addEventListener('click', () => startGame('easy'));
+        mediumBtn.addEventListener('click', () => startGame('medium'));
+        hardBtn.addEventListener('click', () => startGame('hard'));
+        
+        backToMenuBtn.addEventListener('click', backToMenu);
+        menuBtn.addEventListener('click', backToMenu);
+        
+        nextLevelBtn.addEventListener('click', () => {
+            if (gameState.currentLevel < 3) {
+                gameState.currentLevel++;
+                levelCompleteScreen.style.display = 'none';
+                gameScreen.style.display = 'flex';
+                setupLevel();
+            } else {
+                // Voltar ao menu após completar todos os níveis
+                backToMenu();
+            }
+        });
+        
+        musicToggle.addEventListener('click', toggleMusic);
+        
+        // Tecla 'M' para mutar/desmutar música
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'm' || e.key === 'M') {
+                toggleMusic();
+            }
+        });
+        
+        // Iniciar música ao carregar (com tratamento de autoplay)
+        document.addEventListener('click', () => {
+            if (gameState.musicPlaying) {
+                backgroundMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
