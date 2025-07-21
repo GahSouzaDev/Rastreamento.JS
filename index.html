@@ -3,11 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Braço Robótico Inteligente</title>
+    <title>Simulação de Braço Robótico 3D Avançado</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -20,77 +22,79 @@
             background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
             color: white;
             min-height: 100vh;
-            padding: 20px;
+            padding: 15px;
+            overflow-x: hidden;
         }
         
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        @media (min-width: 900px) {
+            .container {
+                grid-template-columns: 1fr 1fr;
+            }
         }
         
         header {
+            grid-column: 1 / -1;
             text-align: center;
-            padding: 20px 0;
-            margin-bottom: 30px;
-            position: relative;
+            padding: 15px 0;
+            margin-bottom: 10px;
         }
         
         h1 {
-            font-size: 2.8rem;
-            margin-bottom: 10px;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
             text-shadow: 0 2px 10px rgba(0, 200, 255, 0.5);
-            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            background: linear-gradient(90deg, #FFD700, #FFA500);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
         .subtitle {
-            font-size: 1.2rem;
+            font-size: 1rem;
             opacity: 0.9;
             max-width: 800px;
             margin: 0 auto;
-            line-height: 1.6;
-            color: #a0d2fe;
-        }
-        
-        .content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-        
-        @media (max-width: 1000px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
+            line-height: 1.5;
+            color: #FFD700;
         }
         
         .panel {
             background: rgba(20, 30, 60, 0.8);
             border-radius: 15px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 10px 30px rgba(0, 50, 150, 0.3);
-            border: 1px solid rgba(100, 180, 255, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.3);
             transition: all 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
         
         .panel:hover {
-            box-shadow: 0 10px 40px rgba(0, 100, 255, 0.4);
+            box-shadow: 0 10px 40px rgba(255, 215, 0, 0.4);
         }
         
         .panel-title {
-            font-size: 1.5rem;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #4facfe;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #FFD700;
             display: flex;
             align-items: center;
-            color: #4facfe;
+            color: #FFD700;
         }
         
         .panel-title i {
             margin-right: 10px;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
         }
         
         .camera-container {
@@ -99,13 +103,17 @@
             border-radius: 10px;
             overflow: hidden;
             background: #000;
-            box-shadow: 0 0 20px rgba(0, 100, 255, 0.3);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            flex: 1;
+            min-height: 300px;
         }
         
         #camera {
             width: 100%;
+            height: 100%;
             display: block;
             transform: scaleX(-1);
+            object-fit: cover;
         }
         
         #outputCanvas {
@@ -116,33 +124,40 @@
             height: 100%;
         }
         
-        .control-viz {
+        .three-container {
             width: 100%;
-            height: 300px;
-            background: #0a0f25;
+            height: 400px;
             border-radius: 10px;
-            margin-top: 20px;
-            position: relative;
             overflow: hidden;
-            box-shadow: 0 0 15px rgba(0, 80, 200, 0.2);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            background: #000;
+            flex: 1;
+            position: relative;
         }
         
-        #vizCanvas {
+        @media (min-width: 900px) {
+            .three-container {
+                height: 100%;
+            }
+        }
+        
+        #three-canvas {
             width: 100%;
             height: 100%;
+            display: block;
         }
         
         .status-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 25px;
+            gap: 12px;
+            margin-top: 15px;
         }
         
         .status-card {
             background: rgba(30, 50, 100, 0.7);
             border-radius: 10px;
-            padding: 15px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -151,38 +166,38 @@
         }
         
         .status-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             background: rgba(40, 70, 130, 0.8);
         }
         
         .status-label {
-            font-size: 1rem;
+            font-size: 0.9rem;
             opacity: 0.9;
-            margin-bottom: 8px;
-            color: #aad4ff;
+            margin-bottom: 6px;
+            color: #FFD700;
         }
         
         .status-value {
-            font-size: 1.8rem;
+            font-size: 1.5rem;
             font-weight: bold;
             color: #4affd0;
-            text-shadow: 0 0 10px rgba(74, 255, 208, 0.5);
+            text-shadow: 0 0 8px rgba(74, 255, 208, 0.5);
         }
         
         .gripper-status {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 8px;
+            margin-top: 8px;
         }
         
         .gripper-indicator {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             background: #4a9eff;
-            box-shadow: 0 0 8px rgba(74, 159, 255, 0.7);
+            box-shadow: 0 0 6px rgba(74, 159, 255, 0.7);
         }
         
         .gripper-open {
@@ -191,31 +206,33 @@
         
         .gripper-closed {
             background: #ff4a4a;
-            box-shadow: 0 0 8px rgba(255, 74, 74, 0.7);
+            box-shadow: 0 0 6px rgba(255, 74, 74, 0.7);
         }
         
         .instructions {
-            margin-top: 25px;
-            padding: 20px;
+            margin-top: 20px;
+            padding: 15px;
             background: rgba(20, 40, 100, 0.4);
             border-radius: 10px;
-            line-height: 1.6;
-            border: 1px solid rgba(100, 180, 255, 0.2);
+            line-height: 1.5;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-size: 0.9rem;
         }
         
         .instructions h3 {
-            margin-bottom: 15px;
-            color: #4facfe;
+            margin-bottom: 10px;
+            color: #FFD700;
+            font-size: 1.1rem;
         }
         
         .instructions ul {
-            padding-left: 20px;
+            padding-left: 18px;
         }
         
         .instructions li {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             position: relative;
-            padding-left: 25px;
+            padding-left: 22px;
         }
         
         .instructions li:before {
@@ -223,66 +240,66 @@
             position: absolute;
             left: 0;
             color: #4affd0;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
         }
         
         .connection-panel {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 15px;
         }
         
         .input-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
         
         label {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             opacity: 0.9;
-            color: #aad4ff;
+            color: #FFD700;
         }
         
         input {
-            padding: 13px;
+            padding: 10px;
             border-radius: 8px;
             border: none;
             background: rgba(20, 40, 80, 0.5);
             color: white;
-            font-size: 1rem;
-            border: 1px solid rgba(100, 180, 255, 0.3);
+            font-size: 0.9rem;
+            border: 1px solid rgba(255, 215, 0, 0.3);
         }
         
         input:focus {
-            outline: 2px solid #4facfe;
+            outline: 2px solid #FFD700;
             background: rgba(30, 60, 120, 0.5);
-            box-shadow: 0 0 10px rgba(74, 172, 254, 0.5);
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
         }
         
         .btn-group {
             display: flex;
-            gap: 15px;
-            margin-top: 10px;
+            gap: 12px;
+            margin-top: 8px;
         }
         
         button {
             flex: 1;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             border: none;
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4);
+            background: linear-gradient(135deg, #FFA500, #FFD700);
+            color: #1a1a2e;
+            box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
         }
         
         button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(0, 150, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 165, 0, 0.6);
         }
         
         button:active {
@@ -291,259 +308,326 @@
         
         #disconnectBtn {
             background: linear-gradient(135deg, #ff4a4a, #ff7676);
-            box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(255, 0, 0, 0.3);
+            color: white;
         }
         
         #disconnectBtn:hover {
             background: linear-gradient(135deg, #ee3a3a, #ff6b6b);
-            box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5);
+            box-shadow: 0 6px 15px rgba(255, 0, 0, 0.5);
         }
         
         #invertBtn {
             background: linear-gradient(135deg, #ff9a9e, #fad0c4);
             color: #333;
-            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+            box-shadow: 0 4px 12px rgba(255, 154, 158, 0.4);
         }
         
         #invertBtn:hover {
             background: linear-gradient(135deg, #ff7b81, #f8c0b0);
-            box-shadow: 0 6px 20px rgba(255, 123, 129, 0.6);
+            box-shadow: 0 6px 15px rgba(255, 123, 129, 0.6);
         }
         
         #invertBtn.active {
             background: linear-gradient(135deg, #4affd0, #00e0ff);
             color: white;
-            box-shadow: 0 0 20px rgba(74, 255, 208, 0.6);
+            box-shadow: 0 0 15px rgba(74, 255, 208, 0.6);
         }
         
         .connection-status {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 15px;
+            gap: 8px;
+            padding: 12px;
             border-radius: 8px;
-            margin-top: 15px;
+            margin-top: 12px;
             background: rgba(20, 40, 100, 0.4);
-            border: 1px solid rgba(100, 180, 255, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            font-size: 0.9rem;
         }
         
         .status-indicator {
-            width: 15px;
-            height: 15px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: #ff4a4a;
-            box-shadow: 0 0 8px rgba(255, 74, 74, 0.7);
+            box-shadow: 0 0 6px rgba(255, 74, 74, 0.7);
         }
         
         .connected {
             background: #4aff4a;
-            box-shadow: 0 0 8px rgba(74, 255, 74, 0.7);
+            box-shadow: 0 0 6px rgba(74, 255, 74, 0.7);
         }
         
         footer {
+            grid-column: 1 / -1;
             text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            font-size: 0.9rem;
+            margin-top: 15px;
+            padding: 15px;
+            font-size: 0.85rem;
             opacity: 0.7;
-            color: #aad4ff;
+            color: #FFD700;
         }
         
         .controls-info {
-            margin-top: 20px;
+            margin-top: 15px;
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        @media (min-width: 600px) {
+            .controls-info {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
         .control-card {
             background: rgba(30, 50, 100, 0.7);
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(100, 180, 255, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.2);
             transition: all 0.3s ease;
         }
         
         .control-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             background: rgba(40, 70, 130, 0.8);
         }
         
         .control-card h3 {
-            color: #4facfe;
-            margin-bottom: 15px;
+            color: #FFD700;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            font-size: 1.1rem;
         }
         
         .control-card p {
-            line-height: 1.6;
-            color: #cce6ff;
+            line-height: 1.5;
+            color: #FFD700;
+            font-size: 0.9rem;
         }
         
         .icon {
-            font-size: 1.5rem;
-        }
-        
-        .viz-info {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            color: #aad4ff;
-        }
-        
-        .direction-indicator {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            font-size: 24px;
-            color: #4affd0;
+            font-size: 1.3rem;
         }
         
         .invert-status {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px;
+            gap: 8px;
+            padding: 8px;
             background: rgba(30, 50, 100, 0.6);
             border-radius: 8px;
-            margin-top: 15px;
+            margin-top: 12px;
             justify-content: center;
+            font-size: 0.9rem;
         }
         
         .invert-indicator {
-            width: 15px;
-            height: 15px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
             background: #ff4a4a;
-            box-shadow: 0 0 8px rgba(255, 74, 74, 0.7);
+            box-shadow: 0 0 6px rgba(255, 74, 74, 0.7);
         }
         
         .invert-active {
             background: #4aff4a;
-            box-shadow: 0 0 8px rgba(74, 255, 74, 0.7);
+            box-shadow: 0 0 6px rgba(74, 255, 74, 0.7);
+        }
+        
+        .camera-controls {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 8px;
+            z-index: 100;
+        }
+        
+        .camera-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(30, 50, 100, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+        
+        .camera-btn:hover {
+            background: rgba(40, 70, 130, 0.9);
+            transform: scale(1.1);
+        }
+        
+        .range-container {
+            margin-top: 12px;
+            background: rgba(30, 50, 100, 0.6);
+            padding: 12px;
+            border-radius: 8px;
+        }
+        
+        .range-slider {
+            width: 100%;
+            margin-top: 8px;
+            -webkit-appearance: none;
+            height: 8px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #FFA500, #FFD700);
+            outline: none;
+        }
+        
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4affd0;
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4affd0;
+            cursor: pointer;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .joint-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #FFD700;
+        }
+        
+        .object-counter {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            z-index: 100;
+            border: 1px solid #FFD700;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Controle de Braço Robótico Inteligente</h1>
-            <p class="subtitle">Controle preciso com ajustes personalizáveis para operação intuitiva</p>
+            <h1>Simulação de Braço Robótico 3D Avançado</h1>
+            <p class="subtitle">Controle realista com movimentos de mão e capacidade de pegar objetos</p>
         </header>
         
-        <div class="content">
-            <div class="panel">
-                <h2 class="panel-title"><i class="icon">📷</i> Detecção de Mãos</h2>
-                
-                <div class="camera-container">
-                    <video id="camera" width="640" height="480" autoplay playsinline></video>
-                    <canvas id="outputCanvas" width="640" height="480"></canvas>
+        <div class="panel">
+            <h2 class="panel-title"><i class="icon">📷</i> Detecção de Mãos</h2>
+            
+            <div class="camera-container">
+                <video id="camera" width="640" height="480" autoplay playsinline></video>
+                <canvas id="outputCanvas" width="640" height="480"></canvas>
+            </div>
+            
+            <div class="status-container">
+                <div class="status-card">
+                    <div class="status-label">Base (Rotação)</div>
+                    <div class="status-value" id="baseValue">0°</div>
                 </div>
-                
-                <div class="control-viz">
-                    <canvas id="vizCanvas" width="640" height="300"></canvas>
-                    <div class="viz-info">Visualização de Controle</div>
+                <div class="status-card">
+                    <div class="status-label">Ombro</div>
+                    <div class="status-value" id="shoulderValue">90°</div>
                 </div>
-                
-                <div class="status-container">
-                    <div class="status-card">
-                        <div class="status-label">Esquerda/Direita</div>
-                        <div class="status-value" id="lrValue">90°</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-label">Cima/Baixo</div>
-                        <div class="status-value" id="udValue">125°</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-label">Frente/Trás</div>
-                        <div class="status-value" id="fbValue">90°</div>
-                    </div>
-                    <div class="status-card">
-                        <div class="status-label">Garra</div>
-                        <div class="status-value" id="gripperValue">Aberta</div>
-                        <div class="gripper-status">
-                            <div class="gripper-indicator gripper-open" id="gripperIndicator"></div>
-                            <span id="gripperStatusText">Aberta</span>
-                        </div>
-                    </div>
+                <div class="status-card">
+                    <div class="status-label">Cotovelo</div>
+                    <div class="status-value" id="elbowValue">90°</div>
                 </div>
-                
-                <div class="instructions">
-                    <h3>Instruções de Uso:</h3>
-                    <ul>
-                        <li>Posicione sua mão diante da câmera para iniciar o controle</li>
-                        <li>Mova a mão horizontalmente para controlar esquerda/direita</li>
-                        <li>Mova a mão verticalmente para controlar cima/baixo</li>
-                        <li>Aproxime/afaste a mão para controlar frente/trás</li>
-                        <li>Junte polegar e indicador para fechar a garra</li>
-                        <li>Pressione 'Q' no teclado para encerrar</li>
-                    </ul>
+                <div class="status-card">
+                    <div class="status-label">Garra</div>
+                    <div class="status-value" id="gripperValue">Aberta</div>
+                    <div class="gripper-status">
+                        <div class="gripper-indicator gripper-open" id="gripperIndicator"></div>
+                        <span id="gripperStatusText">Aberta</span>
+                    </div>
                 </div>
             </div>
             
-            <div class="panel">
-                <h2 class="panel-title"><i class="icon">⚙️</i> Configurações do Robô</h2>
+            <div class="instructions">
+                <h3>Instruções de Controle:</h3>
+                <ul>
+                    <li>Mova a mão horizontalmente para controlar a rotação da base</li>
+                    <li>Mova a mão verticalmente para controlar o ombro</li>
+                    <li>Aproxime/afaste a mão para controlar o cotovelo</li>
+                    <li>Junte polegar e indicador para fechar a garra e pegar objetos</li>
+                    <li>Use os botões de câmera para mudar o ponto de vista</li>
+                    <li>Pressione 'R' para resetar a posição do braço</li>
+                    <li>Pressione 'G' para gerar novos objetos</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2 class="panel-title"><i class="icon">🤖</i> Simulação 3D Realista</h2>
+            
+            <div class="three-container">
+                <canvas id="three-canvas"></canvas>
+                <div class="object-counter">Objetos: <span id="objectCount">0</span></div>
+                <div class="camera-controls">
+                    <div class="camera-btn" id="cameraFront">👁️</div>
+                    <div class="camera-btn" id="cameraTop">⬆️</div>
+                    <div class="camera-btn" id="cameraSide">↔️</div>
+                    <div class="camera-btn" id="cameraReset">🔄</div>
+                </div>
+            </div>
+            
+            <div class="range-container">
+                <label for="cameraDistance">Distância da Câmera</label>
+                <input type="range" min="10" max="30" value="15" class="range-slider" id="cameraDistance">
+                <div class="joint-info">
+                    <span>Zoom Out</span>
+                    <span>Zoom In</span>
+                </div>
+            </div>
+            
+            <div class="connection-panel">
+                <div class="btn-group">
+                    <button id="invertBtn">Inverter Horizontal</button>
+                    <button id="resetBtn">Resetar Braço</button>
+                </div>
                 
-                <div class="connection-panel">
-                    <div class="input-group">
-                        <label for="wsUrl">Endereço do WebSocket:</label>
-                        <input type="text" id="wsUrl" value="ws://192.168.5.15:81" placeholder="ws://endereco_ip:porta">
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button id="connectBtn">Conectar</button>
-                        <button id="disconnectBtn">Desconectar</button>
-                    </div>
-                    
-                    <div class="connection-status">
-                        <div class="status-indicator" id="statusIndicator"></div>
-                        <span id="connectionStatusText">Desconectado</span>
-                    </div>
-                    
-                    <div class="btn-group">
-                        <button id="invertBtn">Inverter Horizontal</button>
-                    </div>
-                    
-                    <div class="invert-status">
-                        <div class="invert-indicator" id="invertIndicator"></div>
-                        <span id="invertStatusText">Inversão Desativada</span>
-                    </div>
-                    
-                    <div class="controls-info">
-                        <div class="control-card">
-                            <h3><i class="icon">🔄</i> Controle Horizontal</h3>
-                            <p>Use o botão "Inverter Horizontal" para ajustar a direção quando o braço estiver de frente para você.</p>
-                            <div class="direction-indicator">↔️</div>
-                        </div>
-                        <div class="control-card">
-                            <h3><i class="icon">↕️</i> Controle Vertical</h3>
-                            <p>Subir a mão faz o braço descer, descer a mão faz o braço subir.</p>
-                            <div class="direction-indicator">↑↓</div>
-                        </div>
-                        <div class="control-card">
-                            <h3><i class="icon">⤴️</i> Controle Profundidade</h3>
-                            <p>Aproximar a mão move para frente, afastar move para trás.</p>
-                            <div class="direction-indicator">⇆</div>
-                        </div>
-                        <div class="control-card">
-                            <h3><i class="icon">✊</i> Controle da Garra</h3>
-                            <p>Junte polegar e indicador para fechar, afaste para abrir.</p>
-                            <div class="direction-indicator">👌</div>
-                        </div>
-                    </div>
+                <div class="invert-status">
+                    <div class="invert-indicator" id="invertIndicator"></div>
+                    <span id="invertStatusText">Inversão Desativada</span>
                 </div>
             </div>
         </div>
         
+        <div class="controls-info">
+            <div class="control-card">
+                <h3><i class="icon">🔄</i> Movimentos do Braço</h3>
+                <p>O braço robótico possui 4 graus de liberdade: rotação da base, elevação do ombro, flexão do cotovelo e abertura da garra. Todos os movimentos são controlados pelos gestos da sua mão.</p>
+            </div>
+            <div class="control-card">
+                <h3><i class="icon">🎮</i> Interação com Objetos</h3>
+                <p>Quando a garra está fechada e próxima de um objeto, ela automaticamente o captura. Para soltar, basta abrir a garra. Objetos podem ser reposicionados com 'G'.</p>
+            </div>
+        </div>
+        
         <footer>
-            <p>Sistema de Controle de Braço Robótico | Funcionalidade Completa | MediaPipe + WebSockets</p>
+            <p>Sistema de Controle de Braço Robótico 3D | Design Realista | MediaPipe + Three.js</p>
         </footer>
     </div>
 
@@ -552,39 +636,40 @@
         const videoElement = document.getElementById('camera');
         const outputCanvas = document.getElementById('outputCanvas');
         const outputCtx = outputCanvas.getContext('2d');
-        const vizCanvas = document.getElementById('vizCanvas');
-        const vizCtx = vizCanvas.getContext('2d');
-        const connectBtn = document.getElementById('connectBtn');
-        const disconnectBtn = document.getElementById('disconnectBtn');
         const invertBtn = document.getElementById('invertBtn');
-        const wsUrlInput = document.getElementById('wsUrl');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const invertIndicator = document.getElementById('invertIndicator');
-        const connectionStatusText = document.getElementById('connectionStatusText');
-        const invertStatusText = document.getElementById('invertStatusText');
-        const lrValue = document.getElementById('lrValue');
-        const udValue = document.getElementById('udValue');
-        const fbValue = document.getElementById('fbValue');
+        const resetBtn = document.getElementById('resetBtn');
+        const baseValue = document.getElementById('baseValue');
+        const shoulderValue = document.getElementById('shoulderValue');
+        const elbowValue = document.getElementById('elbowValue');
         const gripperValue = document.getElementById('gripperValue');
         const gripperIndicator = document.getElementById('gripperIndicator');
         const gripperStatusText = document.getElementById('gripperStatusText');
+        const cameraFrontBtn = document.getElementById('cameraFront');
+        const cameraTopBtn = document.getElementById('cameraTop');
+        const cameraSideBtn = document.getElementById('cameraSide');
+        const cameraResetBtn = document.getElementById('cameraReset');
+        const cameraDistanceSlider = document.getElementById('cameraDistance');
+        const objectCountElement = document.getElementById('objectCount');
         
         // Configurações
-        let ws = null;
-        let isConnected = false;
         let invertHorizontal = false;
-        let lastSentValues = {
-            left_right: 90,
-            up_down: 125,
-            forward_backward: 90,
+        let cameraDistance = 15;
+        let controls;
+        
+        // Variáveis para a simulação 3D
+        let scene, camera, renderer;
+        let robotBase, robotShoulder, robotElbow, robotWrist, robotGripper;
+        let gripperLeft, gripperRight;
+        let heldObject = null;
+        let objects = [];
+        
+        // Ângulos iniciais do braço
+        let armAngles = {
+            base: 90,
+            shoulder: 180,
+            elbow: 90,
             gripper: 180
         };
-        
-        // Função para mapear valores com clamping
-        function mapValue(value, inMin, inMax, outMin, outMax) {
-            const clampedValue = Math.max(inMin, Math.min(value, inMax));
-            return outMin + (outMax - outMin) * (clampedValue - inMin) / (inMax - inMin);
-        }
         
         // Inicializar MediaPipe Hands
         const hands = new self.Hands({
@@ -631,7 +716,7 @@
                 processHandData(results.multiHandLandmarks[0]);
             } else {
                 // Nenhuma mão detectada
-                updateVizCanvas(null);
+                gripperStatusText.textContent = "Aguardando mão";
             }
             
             outputCtx.restore();
@@ -663,44 +748,34 @@
             
             // Calcular valores dos servos
             
-            // Controle horizontal (com opção de inversão)
-            let servoLeftRight;
+            // Controle horizontal (rotação da base)
+            let servoBase;
             if (invertHorizontal) {
-                servoLeftRight = mapValue(xCenter, 0.2, 0.8, 160, 20);
+                servoBase = mapValue(xCenter, 0.2, 0.8, 0, 180);
             } else {
-                servoLeftRight = mapValue(xCenter, 0.2, 0.8, 20, 160);
+                servoBase = mapValue(xCenter, 0.2, 0.8, 0, 180);
             }
             
-            // MOVIMENTO VERTICAL INVERTIDO: 
-            // - Mão sobe (yCenter diminui) = Braço desce (ângulo aumenta)
-            const servoUpDown = mapValue(yCenter, 0.2, 0.8, 180, 70);
+            // Controle de profundidade (cotovelo)
+            const servoElbow = mapValue(yCenter, 0.2, 0.8, 100, 0);
             
-            // MOVIMENTO DE PROFUNDIDADE AJUSTADO:
-            // - Mão aproxima (handArea aumenta) = Vai para frente (ângulo diminui)
-            const servoForwardBackward = mapValue(handArea, 0.05, 0.15, 120, 60);
+            // Controle vertical (ombro)
+            const servoShoulder = mapValue(handArea, 0.05, 0.15, 270, 180);
             
             // Detectar gesto de pinça (polegar e indicador)
             const thumbTip = landmarks[4];
             const indexTip = landmarks[8];
             const distance = Math.sqrt(
-                Math.pow(thumbTip.x - indexTip.x, 3) + 
-                Math.pow(thumbTip.y - indexTip.y, 3)
+                Math.pow(thumbTip.x - indexTip.x, 4) + 
+                Math.pow(thumbTip.y - indexTip.y, 4)
             );
             
             const servoGripper = distance < 0.05 ? 110 : 180;
             
-            // Atualizar visualização
-            updateVizCanvas({
-                x: xCenter,
-                y: yCenter,
-                area: handArea,
-                gripperClosed: servoGripper === 110
-            });
-            
             // Atualizar valores na UI
-            lrValue.textContent = `${Math.round(servoLeftRight)}°`;
-            udValue.textContent = `${Math.round(servoUpDown)}°`;
-            fbValue.textContent = `${Math.round(servoForwardBackward)}°`;
+            baseValue.textContent = `${Math.round(servoBase)}°`;
+            shoulderValue.textContent = `${Math.round(servoShoulder)}°`;
+            elbowValue.textContent = `${Math.round(servoElbow)}°`;
             
             if (servoGripper === 110) {
                 gripperValue.textContent = "Fechada";
@@ -712,175 +787,424 @@
                 gripperIndicator.className = "gripper-indicator gripper-open";
             }
             
-            // Preparar dados para envio
-            const servoData = {
-                left_right: Math.round(servoLeftRight),
-                up_down: Math.round(servoUpDown),
-                forward_backward: Math.round(servoForwardBackward),
+            // Atualizar ângulos do braço
+            armAngles = {
+                base: servoBase,
+                shoulder: servoShoulder,
+                elbow: servoElbow,
                 gripper: servoGripper
             };
             
-            // Enviar dados se houver mudança
-            if (isConnected && ws && ws.readyState === WebSocket.OPEN) {
-                if (JSON.stringify(servoData) !== JSON.stringify(lastSentValues)) {
-                    ws.send(JSON.stringify(servoData));
-                    lastSentValues = {...servoData};
+            // Atualizar o braço robótico 3D
+            updateRobotArm();
+        }
+        
+        // Função para mapear valores com clamping
+        function mapValue(value, inMin, inMax, outMin, outMax) {
+            const clampedValue = Math.max(inMin, Math.min(value, inMax));
+            return outMin + (outMax - outMin) * (clampedValue - inMin) / (inMax - inMin);
+        }
+        
+        // Inicializar cena Three.js
+        function initThreeScene() {
+            // Configurar cena
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0f25);
+            scene.fog = new THREE.Fog(0x0a0f25, 15, 30);
+            
+            // Configurar câmera
+            const container = document.querySelector('.three-container');
+            camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(0, 7, cameraDistance);
+            camera.lookAt(0, 0, 0);
+            
+            // Configurar renderizador
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('three-canvas'),
+                antialias: true 
+            });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            // Adicionar luzes
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 7);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            scene.add(directionalLight);
+            
+            const hemisphereLight = new THREE.HemisphereLight(0xFFD700, 0x0066cc, 0.5);
+            scene.add(hemisphereLight);
+            
+            // Criar chão
+            const groundGeometry = new THREE.PlaneGeometry(30, 30);
+            const groundMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x1a2a6c,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.y = -1;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            
+            // Adicionar grade
+            const gridHelper = new THREE.GridHelper(30, 30, 0xFFD700, 0x1a2a6c);
+            gridHelper.position.y = -0.99;
+            scene.add(gridHelper);
+            
+            // Construir o braço robótico
+            createRobotArm();
+            
+            // Criar objetos para interação
+            createObjects();
+            
+            // Atualizar contador de objetos
+            objectCountElement.textContent = objects.length;
+            
+            // Adicionar controles de câmera
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 5;
+            controls.maxDistance = 30;
+            controls.maxPolarAngle = Math.PI / 2;
+            
+            // Iniciar animação
+            animate();
+        }
+        
+        // Criar o braço robótico com articulações
+        function createRobotArm() {
+            // Grupo principal do robô
+            const robotGroup = new THREE.Group();
+            scene.add(robotGroup);
+            
+            // Base (rotação)
+            const baseGeometry = new THREE.CylinderGeometry(1.5, 1.5, 0.8, 32);
+            const baseMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFD700, // Amarelo
+                shininess: 100
+            });
+            robotBase = new THREE.Mesh(baseGeometry, baseMaterial);
+            robotBase.position.y = 0;
+            robotBase.castShadow = true;
+            robotGroup.add(robotBase);
+            
+            // Detalhes pretos na base
+            const baseDetailGeometry = new THREE.CylinderGeometry(1.7, 1.7, 0.1, 32);
+            const baseDetailMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x000000,
+                shininess: 100
+            });
+            const baseDetailTop = new THREE.Mesh(baseDetailGeometry, baseDetailMaterial);
+            baseDetailTop.position.y = 0.4;
+            robotBase.add(baseDetailTop);
+            
+            const baseDetailBottom = new THREE.Mesh(baseDetailGeometry, baseDetailMaterial);
+            baseDetailBottom.position.y = -0.4;
+            robotBase.add(baseDetailBottom);
+            
+            // Coluna
+            const columnGeometry = new THREE.CylinderGeometry(0.8, 0.8, 6, 16);
+            const columnMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x000000, // Preto
+                shininess: 80
+            });
+            const column = new THREE.Mesh(columnGeometry, columnMaterial);
+            column.position.y = 1.4;
+            column.castShadow = true;
+            robotBase.add(column);
+            
+            // Ombro
+            const shoulderGeometry = new THREE.BoxGeometry(1.2, 0.6, 1.2);
+            const shoulderMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFD700, // Amarelo
+                shininess: 90
+            });
+            robotShoulder = new THREE.Mesh(shoulderGeometry, shoulderMaterial);
+            robotShoulder.position.y = 2.5;
+            robotShoulder.rotation.y = Math.PI / 2;
+            robotShoulder.castShadow = true;
+            column.add(robotShoulder);
+            
+            // Detalhe preto no ombro
+            const shoulderDetail = new THREE.Mesh(
+                new THREE.BoxGeometry(1.25, 0.1, 1.25),
+                new THREE.MeshPhongMaterial({ color: 0x000000 })
+            );
+            shoulderDetail.position.y = 0;
+            robotShoulder.add(shoulderDetail);
+            
+            // Braço superior
+            const upperArmGeometry = new THREE.BoxGeometry(0.8, 4, 0.8);
+            const upperArmMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFD700, // Amarelo
+                shininess: 80
+            });
+            const upperArm = new THREE.Mesh(upperArmGeometry, upperArmMaterial);
+            upperArm.position.y = -1.5;
+            upperArm.castShadow = true;
+            robotShoulder.add(upperArm);
+            
+            // Faixas pretas no braço superior
+            for (let i = 0; i < 3; i++) {
+                const stripe = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.85, 0.1, 0.85),
+                    new THREE.MeshPhongMaterial({ color: 0x000000 })
+                );
+                stripe.position.y = -1.0 + i * 1.0;
+                upperArm.add(stripe);
+            }
+            
+            // Cotovelo
+            const elbowGeometry = new THREE.SphereGeometry(0.6, 16, 16);
+            const elbowMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x000000, // Preto
+                shininess: 90
+            });
+            robotElbow = new THREE.Mesh(elbowGeometry, elbowMaterial);
+            robotElbow.position.y = -2;
+            robotElbow.castShadow = true;
+            upperArm.add(robotElbow);
+            
+            // Braço inferior
+            const lowerArmGeometry = new THREE.BoxGeometry(0.7, 3.5, 0.7);
+            const lowerArmMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFD700, // Amarelo
+                shininess: 80
+            });
+            const lowerArm = new THREE.Mesh(lowerArmGeometry, lowerArmMaterial);
+            lowerArm.position.y = -1.7;
+            lowerArm.castShadow = true;
+            robotElbow.add(lowerArm);
+            
+            // Faixas pretas no braço inferior
+            for (let i = 0; i < 3; i++) {
+                const stripe = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.75, 0.1, 0.75),
+                    new THREE.MeshPhongMaterial({ color: 0x000000 })
+                );
+                stripe.position.y = -1.0 + i * 1.0;
+                lowerArm.add(stripe);
+            }
+            
+            // Pulso
+            const wristGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+            const wristMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x000000, // Preto
+                shininess: 90
+            });
+            robotWrist = new THREE.Mesh(wristGeometry, wristMaterial);
+            robotWrist.position.y = -2;
+            robotWrist.castShadow = true;
+            lowerArm.add(robotWrist);
+            
+            // Garra
+            const gripperGroup = new THREE.Group();
+            gripperGroup.position.y = -0.7;
+            robotWrist.add(gripperGroup);
+            robotGripper = gripperGroup;
+            
+            // Base da garra
+            const gripperBaseGeometry = new THREE.BoxGeometry(0.8, 0.4, 0.8);
+            const gripperBaseMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFD700, // Amarelo
+                shininess: 100
+            });
+            const gripperBase = new THREE.Mesh(gripperBaseGeometry, gripperBaseMaterial);
+            gripperBase.castShadow = true;
+            gripperGroup.add(gripperBase);
+            
+            // Detalhes pretos na base da garra
+            const gripperBaseDetail = new THREE.Mesh(
+                new THREE.BoxGeometry(0.85, 0.1, 0.85),
+                new THREE.MeshPhongMaterial({ color: 0x000000 })
+            );
+            gripperBaseDetail.position.y = 0.15;
+            gripperBase.add(gripperBaseDetail);
+            
+            // Dedos da garra
+            const gripperFingerGeometry = new THREE.BoxGeometry(0.2, 0.8, 0.4);
+            const gripperFingerMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0xFFD700, // Amarelo
+                shininess: 60
+            });
+            
+            gripperLeft = new THREE.Mesh(gripperFingerGeometry, gripperFingerMaterial);
+            gripperLeft.position.x = 0.3;
+            gripperLeft.position.y = -0.4;
+            gripperLeft.castShadow = true;
+            gripperGroup.add(gripperLeft);
+            
+            gripperRight = new THREE.Mesh(gripperFingerGeometry, gripperFingerMaterial);
+            gripperRight.position.x = -0.3;
+            gripperRight.position.y = -0.4;
+            gripperRight.castShadow = true;
+            gripperGroup.add(gripperRight);
+            
+            // Pontas dos dedos (pretas)
+            const gripperTipGeometry = new THREE.BoxGeometry(0.22, 0.1, 0.42);
+            const gripperTipMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            
+            const tipLeft = new THREE.Mesh(gripperTipGeometry, gripperTipMaterial);
+            tipLeft.position.y = -0.35;
+            gripperLeft.add(tipLeft);
+            
+            const tipRight = new THREE.Mesh(gripperTipGeometry, gripperTipMaterial);
+            tipRight.position.y = -0.35;
+            gripperRight.add(tipRight);
+        }
+        
+        // Criar objetos para interação
+        function createObjects() {
+            // Remover objetos existentes
+            objects.forEach(obj => scene.remove(obj));
+            objects = [];
+            
+            // Criar objetos
+            const colors = [0xff6b6b, 0x4ecdc4, 0xffd166, 0x6a0572, 0x1a936f];
+            const shapes = ['box', 'sphere', 'cylinder', 'cone', 'torus'];
+            
+            for (let i = 0; i < 8; i++) {
+                const color = colors[i % colors.length];
+                const shapeType = shapes[i % shapes.length];
+                let geometry;
+                
+                switch(shapeType) {
+                    case 'box':
+                        geometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
+                        break;
+                    case 'sphere':
+                        geometry = new THREE.SphereGeometry(0.4, 16, 16);
+                        break;
+                    case 'cylinder':
+                        geometry = new THREE.CylinderGeometry(0.4, 0.4, 0.8, 16);
+                        break;
+                    case 'cone':
+                        geometry = new THREE.ConeGeometry(0.5, 1.0, 16);
+                        break;
+                    case 'torus':
+                        geometry = new THREE.TorusGeometry(0.5, 0.15, 16, 32);
+                        break;
+                }
+                
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: color,
+                    shininess: 90
+                });
+                const object = new THREE.Mesh(geometry, material);
+                
+                // Posicionar objetos em um círculo
+                const angle = (i / 8) * Math.PI * 2;
+                const radius = 5 + Math.random() * 3;
+                object.position.set(
+                    Math.cos(angle) * radius,
+                    0.5,
+                    Math.sin(angle) * radius
+                );
+                
+                object.castShadow = true;
+                object.receiveShadow = true;
+                scene.add(object);
+                objects.push(object);
+            }
+            
+            // Atualizar contador de objetos
+            objectCountElement.textContent = objects.length;
+        }
+        
+        // Atualizar o braço robótico com base nos ângulos
+        function updateRobotArm() {
+            // Converter ângulos para radianos
+            const baseRad = THREE.MathUtils.degToRad(armAngles.base);
+            const shoulderRad = THREE.MathUtils.degToRad(armAngles.shoulder - 90);
+            const elbowRad = THREE.MathUtils.degToRad(armAngles.elbow - 90);
+            
+            // Atualizar rotação da base
+            robotBase.rotation.y = baseRad;
+            
+            // Atualizar rotação do ombro
+            robotShoulder.rotation.z = shoulderRad;
+            
+            // Atualizar rotação do cotovelo
+            robotElbow.rotation.z = elbowRad;
+            
+            // Atualizar abertura da garra
+            const gripperOpenness = THREE.MathUtils.mapLinear(armAngles.gripper, 110, 180, 0, 0.6);
+            gripperLeft.position.x = 0.3 + gripperOpenness;
+            gripperRight.position.x = -0.3 - gripperOpenness;
+            
+            // Verificar colisões com objetos quando a garra estiver fechada
+            if (armAngles.gripper < 150) {
+                checkObjectGrab();
+            } else if (heldObject) {
+                releaseObject();
+            }
+        }
+        
+        // Verificar se a garra está segurando um objeto
+        function checkObjectGrab() {
+            if (heldObject) return;
+            
+            // Posição da garra no mundo
+            const gripperWorldPosition = new THREE.Vector3();
+            robotGripper.getWorldPosition(gripperWorldPosition);
+            
+            // Verificar colisão com objetos
+            for (const obj of objects) {
+                const distance = gripperWorldPosition.distanceTo(obj.position);
+                
+                if (distance < 1.2) {
+                    heldObject = obj;
+                    // Vincular o objeto à garra
+                    robotGripper.add(obj);
+                    obj.position.set(0, -0.8, 0);
+                    break;
                 }
             }
         }
         
-        // Atualizar canvas de visualização
-        function updateVizCanvas(handData) {
-            vizCtx.clearRect(0, 0, vizCanvas.width, vizCanvas.height);
-            
-            if (!handData) {
-                // Desenhar mensagem quando não há mão detectada
-                vizCtx.fillStyle = 'rgba(10, 15, 40, 0.9)';
-                vizCtx.fillRect(0, 0, vizCanvas.width, vizCanvas.height);
+        // Liberar objeto
+        function releaseObject() {
+            if (heldObject) {
+                // Obter posição global antes de remover
+                const worldPosition = new THREE.Vector3();
+                heldObject.getWorldPosition(worldPosition);
                 
-                vizCtx.fillStyle = '#4facfe';
-                vizCtx.font = 'bold 24px Arial';
-                vizCtx.textAlign = 'center';
-                vizCtx.fillText('Aguardando detecção de mão...', vizCanvas.width/2, vizCanvas.height/2);
+                // Remover da garra e adicionar à cena
+                robotGripper.remove(heldObject);
+                scene.add(heldObject);
+                heldObject.position.copy(worldPosition);
                 
-                // Desenhar ícone de mão
-                vizCtx.font = '100px Arial';
-                vizCtx.fillText('✋', vizCanvas.width/2, vizCanvas.height/2 + 80);
-                return;
-            }
-            
-            // Desenhar plano de fundo gradiente
-            const gradient = vizCtx.createLinearGradient(0, 0, vizCanvas.width, vizCanvas.height);
-            gradient.addColorStop(0, '#1a1a2e');
-            gradient.addColorStop(1, '#0f3460');
-            vizCtx.fillStyle = gradient;
-            vizCtx.fillRect(0, 0, vizCanvas.width, vizCanvas.height);
-            
-            // Desenhar grade
-            vizCtx.strokeStyle = 'rgba(100, 180, 255, 0.1)';
-            vizCtx.lineWidth = 1;
-            
-            // Linhas verticais
-            for (let x = 0; x <= vizCanvas.width; x += vizCanvas.width / 10) {
-                vizCtx.beginPath();
-                vizCtx.moveTo(x, 0);
-                vizCtx.lineTo(x, vizCanvas.height);
-                vizCtx.stroke();
-            }
-            
-            // Linhas horizontais
-            for (let y = 0; y <= vizCanvas.height; y += vizCanvas.height / 6) {
-                vizCtx.beginPath();
-                vizCtx.moveTo(0, y);
-                vizCtx.lineTo(vizCanvas.width, y);
-                vizCtx.stroke();
-            }
-            
-            // Desenhar ponto da mão
-            const vizX = mapValue(handData.x, 0, 1, 0, vizCanvas.width);
-            const vizY = mapValue(handData.y, 0, 1, 0, vizCanvas.height);
-            const vizRadius = mapValue(handData.area, 0.05, 0.15, 15, 50);
-            const color = handData.gripperClosed ? '#FF5555' : '#55FF55';
-            
-            // Desenhar círculo externo
-            vizCtx.beginPath();
-            vizCtx.arc(vizX, vizY, vizRadius + 5, 0, Math.PI * 3);
-            vizCtx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-            vizCtx.fill();
-            
-            // Desenhar círculo principal
-            vizCtx.beginPath();
-            vizCtx.arc(vizX, vizY, vizRadius, 0, Math.PI * 3);
-            vizCtx.fillStyle = color;
-            vizCtx.fill();
-            vizCtx.strokeStyle = 'white';
-            vizCtx.lineWidth = 2;
-            vizCtx.stroke();
-            
-            // Desenhar ponto central
-            vizCtx.beginPath();
-            vizCtx.arc(vizX, vizY, 5, 0, Math.PI * 2);
-            vizCtx.fillStyle = 'white';
-            vizCtx.fill();
-            
-            // Desenhar rótulos
-            vizCtx.fillStyle = '#aad4ff';
-            vizCtx.font = 'bold 16px Arial';
-            vizCtx.textAlign = 'center';
-            vizCtx.fillText('Esquerda', 40, vizCanvas.height - 20);
-            vizCtx.fillText('Direita', vizCanvas.width - 40, vizCanvas.height - 20);
-            vizCtx.fillText('Cima', vizCanvas.width/2, 30);
-            vizCtx.fillText('Baixo', vizCanvas.width/2, vizCanvas.height - 10);
-            
-            // Desenhar setas de movimento
-            vizCtx.font = '30px Arial';
-            vizCtx.fillText('←', 40, vizCanvas.height/2);
-            vizCtx.fillText('→', vizCanvas.width - 40, vizCanvas.height/2);
-            vizCtx.fillText('↑', vizCanvas.width/2, 50);
-            vizCtx.fillText('↓', vizCanvas.width/2, vizCanvas.height - 20);
-            
-            // Indicador de inversão horizontal
-            if (invertHorizontal) {
-                vizCtx.fillStyle = '#4affd0';
-                vizCtx.font = 'bold 14px Arial';
-                vizCtx.textAlign = 'center';
-                vizCtx.fillText('HORIZONTAL INVERTIDO', vizCanvas.width/2, 70);
+                heldObject = null;
             }
         }
         
-        // Conectar ao WebSocket
-        function connectWebSocket() {
-            if (isConnected) return;
+        // Animação
+        function animate() {
+            requestAnimationFrame(animate);
             
-            const url = wsUrlInput.value;
-            if (!url) {
-                alert('Por favor, insira um endereço WebSocket válido.');
-                return;
-            }
+            // Atualizar controles de câmera
+            if (controls) controls.update();
             
-            try {
-                ws = new WebSocket(url);
-                
-                ws.onopen = () => {
-                    isConnected = true;
-                    updateConnectionStatus(true, 'Conectado');
-                    console.log('Conexão WebSocket estabelecida');
-                };
-                
-                ws.onerror = (error) => {
-                    console.error('Erro no WebSocket:', error);
-                    updateConnectionStatus(false, 'Erro de conexão');
-                };
-                
-                ws.onclose = () => {
-                    isConnected = false;
-                    updateConnectionStatus(false, 'Desconectado');
-                    console.log('Conexão WebSocket fechada');
-                };
-            } catch (error) {
-                console.error('Erro ao conectar:', error);
-                updateConnectionStatus(false, 'Erro de conexão');
-            }
-        }
-        
-        // Desconectar do WebSocket
-        function disconnectWebSocket() {
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.close();
-            }
-            isConnected = false;
-            updateConnectionStatus(false, 'Desconectado');
-        }
-        
-        // Atualizar status da conexão
-        function updateConnectionStatus(connected, message) {
-            if (connected) {
-                statusIndicator.className = 'status-indicator connected';
-                connectionStatusText.textContent = message;
-            } else {
-                statusIndicator.className = 'status-indicator';
-                connectionStatusText.textContent = message;
-            }
+            // Animar objetos (apenas os que não estão sendo segurados)
+            objects.forEach((obj, index) => {
+                if (obj !== heldObject) {
+                    obj.rotation.y += 0.01;
+                    obj.rotation.x += 0.005;
+                    obj.position.y = 0.5 + Math.sin(Date.now() * 0.001 + index) * 0.2;
+                }
+            });
+            
+            renderer.render(scene, camera);
         }
         
         // Alternar inversão horizontal
@@ -890,17 +1214,72 @@
             if (invertHorizontal) {
                 invertBtn.classList.add('active');
                 invertBtn.textContent = 'Inverter Horizontal (Ativo)';
-                invertIndicator.className = 'invert-indicator invert-active';
-                invertStatusText.textContent = 'Inversão Ativada';
+                document.getElementById('invertStatusText').textContent = 'Inversão Ativada';
+                document.getElementById('invertIndicator').classList.add('invert-active');
             } else {
                 invertBtn.classList.remove('active');
                 invertBtn.textContent = 'Inverter Horizontal';
-                invertIndicator.className = 'invert-indicator';
-                invertStatusText.textContent = 'Inversão Desativada';
+                document.getElementById('invertStatusText').textContent = 'Inversão Desativada';
+                document.getElementById('invertIndicator').classList.remove('invert-active');
+            }
+        }
+        
+        // Resetar posição do braço
+        function resetArmPosition() {
+            armAngles = {
+                base: 90,
+                shoulder: 190,
+                elbow: 90,
+                gripper: 180
+            };
+            
+            baseValue.textContent = "0°";
+            shoulderValue.textContent = "90°";
+            elbowValue.textContent = "90°";
+            gripperValue.textContent = "Aberta";
+            gripperStatusText.textContent = "Aberta";
+            gripperIndicator.className = "gripper-indicator gripper-open";
+            
+            if (heldObject) {
+                releaseObject();
             }
             
-            // Forçar atualização da visualização
-            updateVizCanvas(null);
+            updateRobotArm();
+        }
+        
+        // Configurar câmera para vista frontal
+        function setFrontCamera() {
+            camera.position.set(0, 5, cameraDistance);
+            camera.lookAt(0, 0, 0);
+            if (controls) controls.update();
+        }
+        
+        // Configurar câmera para vista superior
+        function setTopCamera() {
+            camera.position.set(0, cameraDistance, 0);
+            camera.lookAt(0, 0, 0);
+            camera.rotation.x = Math.PI / 2;
+            if (controls) controls.update();
+        }
+        
+        // Configurar câmera para vista lateral
+        function setSideCamera() {
+            camera.position.set(cameraDistance, 5, 0);
+            camera.lookAt(0, 0, 0);
+            if (controls) controls.update();
+        }
+        
+        // Resetar câmera
+        function resetCamera() {
+            camera.position.set(0, 7, cameraDistance);
+            camera.lookAt(0, 0, 0);
+            if (controls) controls.reset();
+        }
+        
+        // Atualizar distância da câmera
+        function updateCameraDistance() {
+            cameraDistance = parseInt(cameraDistanceSlider.value);
+            resetCamera();
         }
         
         // Iniciar câmera
@@ -927,24 +1306,37 @@
         }
         
         // Event Listeners
-        connectBtn.addEventListener('click', connectWebSocket);
-        disconnectBtn.addEventListener('click', disconnectWebSocket);
         invertBtn.addEventListener('click', toggleHorizontalInversion);
+        resetBtn.addEventListener('click', resetArmPosition);
+        cameraFrontBtn.addEventListener('click', setFrontCamera);
+        cameraTopBtn.addEventListener('click', setTopCamera);
+        cameraSideBtn.addEventListener('click', setSideCamera);
+        cameraResetBtn.addEventListener('click', resetCamera);
+        cameraDistanceSlider.addEventListener('input', updateCameraDistance);
         
-        // Tecla 'Q' para sair
+        // Teclas para resetar o braço e gerar novos objetos
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'q' || e.key === 'Q') {
-                disconnectWebSocket();
-                if (videoElement.srcObject) {
-                    videoElement.srcObject.getTracks().forEach(track => track.stop());
-                }
-                alert('Controle encerrado. Atualize a página para reiniciar.');
+            if (e.key === 'r' || e.key === 'R') {
+                resetArmPosition();
+            }
+            if (e.key === 'g' || e.key === 'G') {
+                createObjects();
+            }
+        });
+        
+        // Redimensionar o canvas quando a janela mudar de tamanho
+        window.addEventListener('resize', () => {
+            if (renderer && camera) {
+                const container = document.querySelector('.three-container');
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
             }
         });
         
         // Inicializar
         initCamera();
-        updateVizCanvas(null);
+        initThreeScene();
     </script>
 </body>
 </html>
