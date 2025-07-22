@@ -1145,14 +1145,14 @@
                 const leftOffset = areaRect.left - containerRect.left;
                 const topOffset = areaRect.top - containerRect.top;
                 
-                const maxX = areaRect.width - config.pieceSize;
-                const maxY = areaRect.height - config.pieceSize;
+                const maxX = areaRect.width - config.pieceSize ;
+                const maxY = areaRect.height - config.pieceSize ;
                 
-                const randX = Math.floor(Math.random() * maxX * -2);
-                const randY = Math.floor(Math.random() * maxY * -2);
+                const randX = Math.floor(Math.random() * maxX );
+                const randY = Math.floor(Math.random() * maxY );
                 
-                piece.style.left = (leftOffset + randX) + 'px';
-                piece.style.top = (topOffset + randY) + 'px';
+                piece.style.left = (leftOffset + randX) + 'px'  ;
+                piece.style.top = (topOffset + randY) + '10';
                 
                 piecesArea.appendChild(piece);
                 
