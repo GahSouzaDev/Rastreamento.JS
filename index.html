@@ -18,7 +18,42 @@
             <h1>Simulação de Braço Robótico 3D Avançado</h1>
             <p class="subtitle">Controle realista com movimentos de mão e capacidade de pegar objetos</p>
         </header>
+        <!-- Adicionar após o header, antes dos painéis existentes -->
+<div class="panel missions-panel">
+    <h2 class="panel-title"><i class="icon">🎯</i> Missões Disponíveis</h2>
+    
+    <div class="missions-grid">
+        <div class="mission-card" onclick="startMission('cleanup')">
+            <h4>🌲 Limpeza da Floresta</h4>
+            <p>Colete todos os objetos de lixo e coloque no cesto marrom</p>
+            <div class="mission-stats">
+                <span>⏱️ 150s</span>
+                <span>🎯 8 objetos</span>
+                <span>⭐ 3 estrelas</span>
+            </div>
+        </div>
         
+        <div class="mission-card" onclick="startMission('wordSort')">
+            <h4>📝 Classificação de Palavras</h4>
+            <p>Separe as palavras nos cestos corretos por classificação tônica</p>
+            <div class="mission-stats">
+                <span>⏱️ 250s</span>
+                <span>🎯 9 palavras</span>
+                <span>⭐ 3 estrelas</span>
+            </div>
+        </div>
+        
+        <div class="mission-card" onclick="startMission('mathChallenge')">
+            <h4>🔢 Desafio Matemático</h4>
+            <p>Colete números que somem exatamente o valor alvo</p>
+            <div class="mission-stats">
+                <span>⏱️ 100s</span>
+                <span>🎯 Soma variável</span>
+                <span>⭐ 3 estrelas</span>
+            </div>
+        </div>
+    </div>
+</div>
         <div class="panel">
             <h2 class="panel-title"><i class="icon">📷</i> Detecção de Mãos</h2>
             
@@ -115,6 +150,8 @@
         </footer>
     </div>
 
+<script src="js/missions.js"></script>
+<script src="js/audio.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/threeSetup.js"></script>
     <script src="js/robotArm.js"></script>

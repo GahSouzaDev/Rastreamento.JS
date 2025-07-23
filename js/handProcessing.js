@@ -60,9 +60,9 @@ function processHandData(landmarks) {
     // Controle horizontal (rotação da base)
     let servoBase;
     if (invertHorizontal) {
-        servoBase = mapValue(xCenter, 0.2, 0.8, -20, 250);
+        servoBase = mapValue(xCenter, 0.2, 0.8, 30, 330);
     } else {
-        servoBase = mapValue(xCenter, 0.2, 0.8, 250, -20);
+        servoBase = mapValue(xCenter, 0.2, 0.8, 330, 30);
     }
     
     // Controle de profundidade (cotovelo)

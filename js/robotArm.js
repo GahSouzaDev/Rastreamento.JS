@@ -6,7 +6,7 @@ function createRobotArm() {
     // Base (rotação)
     const baseGeometry = new THREE.CylinderGeometry(1.5, 1.5, 0.8, 32);
     const baseMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xFFD700, // Amarelo
+        color: 0xFF5E00, // Amarelo
         shininess: 100
     });
     robotBase = new THREE.Mesh(baseGeometry, baseMaterial);
@@ -42,7 +42,7 @@ function createRobotArm() {
     // Ombro
     const shoulderGeometry = new THREE.BoxGeometry(1.2, 0.6, 1.2);
     const shoulderMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xFFD700, // Amarelo
+        color: 0XFF5E00, // Amarelo
         shininess: 90
     });
     robotShoulder = new THREE.Mesh(shoulderGeometry, shoulderMaterial);
@@ -62,7 +62,7 @@ function createRobotArm() {
     // Braço superior
     const upperArmGeometry = new THREE.BoxGeometry(0.8, 4, 0.8);
     const upperArmMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xFFD700, // Amarelo
+        color: 0XFF5E00, // Amarelo
         shininess: 80
     });
     const upperArm = new THREE.Mesh(upperArmGeometry, upperArmMaterial);
@@ -94,7 +94,7 @@ function createRobotArm() {
     // Braço inferior
     const lowerArmGeometry = new THREE.BoxGeometry(0.7, 3.5, 0.7);
     const lowerArmMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xFFD700, // Amarelo
+        color: 0XFF5E00, // Amarelo
         shininess: 80
     });
     const lowerArm = new THREE.Mesh(lowerArmGeometry, lowerArmMaterial);
@@ -132,11 +132,11 @@ function createRobotArm() {
     // Base da garra
     const gripperBaseGeometry = new THREE.BoxGeometry(0.8, 0.4, 0.8);
     const gripperBaseMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xFFD700, // Amarelo
+        color: 0XFF5E00, // Amarelo
         shininess: 100
     });
     const gripperBase = new THREE.Mesh(gripperBaseGeometry, gripperBaseMaterial);
-    gripperBase.castShadow = true;
+    gripperBase.castShadow = true;    
     gripperGroup.add(gripperBase);
     
     // Detalhes pretos na base da garra
@@ -144,25 +144,25 @@ function createRobotArm() {
         new THREE.BoxGeometry(0.85, 0.1, 0.85),
         new THREE.MeshPhongMaterial({ color: 0x000000 })
     );
-    gripperBaseDetail.position.y = 0.15;
+    gripperBaseDetail.position.y = 0.18;
     gripperBase.add(gripperBaseDetail);
     
     // Dedos da garra
     const gripperFingerGeometry = new THREE.BoxGeometry(0.2, 0.8, 0.4);
     const gripperFingerMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0xFFD700, // Amarelo
+        color: 0XFF5E00, // Amarelo
         shininess: 60
     });
     
     gripperLeft = new THREE.Mesh(gripperFingerGeometry, gripperFingerMaterial);
     gripperLeft.position.x = 0.3;
-    gripperLeft.position.y = -0.4;
+    gripperLeft.position.y = -0.35;
     gripperLeft.castShadow = true;
     gripperGroup.add(gripperLeft);
     
     gripperRight = new THREE.Mesh(gripperFingerGeometry, gripperFingerMaterial);
     gripperRight.position.x = -0.3;
-    gripperRight.position.y = -0.4;
+    gripperRight.position.y = -0.35;
     gripperRight.castShadow = true;
     gripperGroup.add(gripperRight);
     
