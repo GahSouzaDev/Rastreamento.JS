@@ -124,6 +124,7 @@ h1 {
     flex: 1;
     position: relative;
     border: 3px solid #40BF4A; /* Scratch green */
+    order: 1; /* Canvas aparece primeiro */
 }
 
 @media (min-width: 900px) {
@@ -134,7 +135,7 @@ h1 {
 
 #three-canvas {
     width: 100%;
-    height: 100;
+    height: 100%;
     display: block;
 }
 
@@ -243,6 +244,7 @@ h1 {
     display: flex;
     flex-direction: column;
     gap: 15px;
+    order: 3; /* Botões aparecem por último */
 }
 
 .input-group {
@@ -492,6 +494,7 @@ footer {
     padding: 12px;
     border-radius: 8px;
     border: 2px solid #9966FF; /* Scratch purple */
+    order: 2; /* Range aparece em segundo */
 }
 
 .range-slider {
@@ -548,17 +551,119 @@ footer {
     font-weight: bold;
 }
 
+/* VERSÃO MOBILE MELHORADA */
 @media (max-width: 899px) {
-  .container {
-    display: flex;
-    flex-direction: column;
-  }
+    .container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px; /* Gap menor no mobile */
+    }
 
-  .camera-container {
-    order: 2;
-  }
+    /* Canvas 3D aparece primeiro e com altura igual à câmera */
+    .three-container {
+        order: 1;
+        height: 300px; /* Mesma altura mínima da câmera */
+        min-height: 300px;
+        margin-bottom: 0;
+    }
 
-  .three-container {
-    order: 1;
-  }
+    /* Câmera aparece em segundo */
+    .camera-container {
+        order: 2;
+        margin-bottom: 0;
+    }
+
+    /* Range aparece em segundo dentro do painel 3D */
+    .range-container {
+        order: 2;
+        margin-top: 8px;
+        padding: 8px;
+    }
+
+    /* Botões aparecem por último */
+    .connection-panel {
+        order: 3;
+    }
+
+    /* Painéis ficam grudados */
+    .panel {
+        margin-bottom: 0;
+        padding: 15px; /* Padding menor no mobile */
+    }
+
+    /* Status cards menores no mobile */
+    .status-container {
+        margin-top: 10px;
+        gap: 8px;
+    }
+
+    .status-card {
+        padding: 8px;
+    }
+
+    .status-label {
+        font-size: 0.8rem;
+    }
+
+    .status-value {
+        font-size: 1.2rem;
+    }
+
+    /* Instruções mais compactas */
+    .instructions {
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Botões menores no mobile */
+    .btn-group {
+        gap: 8px;
+        margin-top: 5px;
+    }
+
+    button {
+        padding: 10px;
+        font-size: 0.8rem;
+    }
+
+    /* Controls info ocultos no mobile para economizar espaço */
+    .controls-info {
+        display: none;
+    }
+
+    /* Footer mais compacto */
+    footer {
+        margin-top: 10px;
+        padding: 10px;
+        font-size: 0.75rem;
+    }
+
+    /* Header mais compacto */
+    h1 {
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    header {
+        padding: 10px 0;
+        margin-bottom: 5px;
+    }
+
+    /* Botões de câmera menores no mobile */
+    .camera-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+
+    .camera-controls {
+        bottom: 10px;
+        right: 10px;
+        gap: 6px;
+    }
 }
